@@ -209,16 +209,14 @@ export const GET = async (request: Request) => {
     getPathUrl(request.url),
     "/chat/completions",
   );
-  if (!openapiUrl) {
-    return new Response("Please put an openapiUrl in your pathname");
-  }
 
   const accept = request.headers.get("Accept");
   if (accept?.startsWith("text/html")) {
+    const page = !openapiUrl ? "/explore.html" : "/chat.html";
     // default for browsers, ensuring we get html for browsers, openapi otherwise
-    const template = await fetch(
-      new URL(request.url).origin + "/chat.html",
-    ).then((res) => res.text());
+    const template = await fetch(new URL(request.url).origin + page).then(
+      (res) => res.text(),
+    );
     const data = { hello: "world" };
     const html = template.replaceAll(
       "const data = {}",
@@ -228,6 +226,10 @@ export const GET = async (request: Request) => {
       status: 200,
       headers: { "Content-Type": "text/html" },
     });
+  }
+
+  if (!openapiUrl) {
+    return new Response("Please put an openapiUrl in your pathname");
   }
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
