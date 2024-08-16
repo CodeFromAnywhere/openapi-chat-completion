@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Chat Interface</h1>
+        </header>
+        <main class="bg-white rounded-lg shadow-md p-6">
+            <div id="chatContainer" class="space-y-4 mb-4 h-96 overflow-y-auto">
+                <!-- Chat messages will be inserted here -->
+            </div>
+            <div class="flex">
+                <input type="text" id="userInput"
+                    class="flex-grow border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Type your message...">
+                <button id="sendButton"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const dummyChat = [
+            { role: 'assistant', content: 'Hello! How can I assist you today?' },
+            { role: 'user', content: 'Can you tell me about the repository?' },
+            { role: 'assistant', content: 'Certainly! This repository contains a project that... [truncated for brevity]' },
+            { role: 'user', content: 'What are the main features?' },
+            { role: 'assistant', content: 'The main features of this project include... [truncated for brevity]' }
+        ];
+
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const innerDiv = document.createElement('div');
+            innerDiv.className = `max-w-xs ${role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3`;
+            innerDiv.textContent = content;
+
+            messageDiv.appendChild(innerDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function loadDummyChat() {
+            dummyChat.forEach(message => addMessage(message.role, message.content));
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                userInput.value = '';
+                // Simulated response
+                setTimeout(() => {
+                    addMessage('assistant', 'I understand. Can you please provide more details about your question?');
+                }, 1000);
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDummyChat();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const openapiUrl = urlParams.get('openapiUrl');
+            const operationIds = urlParams.get('operationIds');
+            const chatCompletionBasePath = new URL(window.location.href).origin + "/" + openapiUrl;
+
+            console.log({ chatCompletionBasePath })
+
+        });
+    </script>
+</body>
+
+</html>

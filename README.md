@@ -1,5 +1,7 @@
 TODO:
 
+- support queryparam operationIds
+- chat.html
 - support streaming (needed due to long nature of potential actions)
 - aggregate usage
 
