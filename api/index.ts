@@ -8,14 +8,14 @@ import {
 /** chat completion endpoint  */
 const llmCall = async (context: {
   providerBasePath: string;
-  llmSecret: string;
+  llmSecret?: string;
   model: string;
   tools: any[];
   body: any;
   messages: any[];
 }) => {
   const { body, llmSecret, messages, model, providerBasePath, tools } = context;
-  const response = await fetch(providerBasePath, {
+  const response = await fetch(providerBasePath + "/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${llmSecret}`,
@@ -234,6 +234,9 @@ export const GET = async (request: Request) => {
 };
 
 export const POST = async (request: Request) => {
+  const forcedBasePath = request.headers.get("X-LLM-BASEPATH");
+  const forcedSecret = request.headers.get("X-LLM-SECRET");
+
   const openapiUrl = withoutPathnameSuffix(
     getPathUrl(request.url),
     "/chat/completions",
@@ -258,28 +261,46 @@ export const POST = async (request: Request) => {
     return new Response("OpenAPI not found", { status: 400 });
   }
 
-  const llmSecret = process.env.GROQ_API_KEY;
-
-  if (!llmSecret) {
-    return new Response("No LLM Secret", { status: 500 });
-  }
   try {
     const body: ChatCompletionInput = await request.json();
+
+    if (body.tools && body.tools.length > 0) {
+      return new Response("Tools need to be supplied through the OpenAPI", {
+        status: 500,
+      });
+    }
 
     const [provider, ...chunks] = body.model.split("/");
     const model = chunks.join("/");
 
-    const chatCompletionBasePaths = {
-      groq: "https://api.groq.com/openai/v1/chat/completions",
-      openai: "https://api.openai.com/v1/chat/completions",
+    const chatCompletionProviders = {
+      groq: {
+        baseUrl: "https://api.groq.com/openai/v1",
+        secret: process.env.GROQ_SECRET,
+      },
+      openai: {
+        baseUrl: "https://api.openai.com/v1",
+        secret: process.env.OPENAI_SECRET,
+      },
     };
 
-    if (!Object.keys(chatCompletionBasePaths).includes(provider)) {
+    if (
+      !(forcedBasePath && forcedSecret) &&
+      !Object.keys(chatCompletionProviders).includes(provider)
+    ) {
       return new Response("Unsupported provider", { status: 400 });
     }
 
     const providerBasePath =
-      chatCompletionBasePaths[provider as keyof typeof chatCompletionBasePaths];
+      forcedBasePath ||
+      chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
+        .baseUrl;
+
+    const llmSecret = forcedBasePath
+      ? forcedSecret || undefined
+      : chatCompletionProviders[
+          provider as keyof typeof chatCompletionProviders
+        ].secret;
 
     const tools: ChatCompletionInput["tools"] = Object.keys(
       semanticOpenapi.properties,
