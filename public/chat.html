@@ -85,8 +85,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDummyChat();
 
+            // should verify openapiUrl 
+            const openapiUrl = window.location.pathname;
+            //if not valid, redirect to explore.html
 
-            console.log({ chatCompletionBasePath: window.location.href })
+            console.log({ openapiUrl, chatCompletionBasePath: window.location.href })
 
         });
     </script>
