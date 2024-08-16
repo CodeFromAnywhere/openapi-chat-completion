@@ -253,9 +253,11 @@ export const GET = async (request: Request) => {
 };
 
 export const POST = async (request: Request) => {
-  const forcedBasePath = request.headers.get("X-LLM-BASEPATH");
-  const forcedSecret = request.headers.get("X-LLM-SECRET");
-
+  const forcedLlmBasePath = request.headers.get("X-LLM-BASEPATH");
+  const forcedLlmSecret = request.headers.get("X-LLM-SECRET");
+  const forcedOpenapiSecret = request.headers.get("X-OPENAPI-SECRET");
+  // for now, must be forced through a header
+  const access_token = forcedOpenapiSecret || undefined;
   const openapiUrl = withoutPathnameSuffix(
     getPathUrl(request.url),
     "/chat/completions",
@@ -304,19 +306,19 @@ export const POST = async (request: Request) => {
     };
 
     if (
-      !(forcedBasePath && forcedSecret) &&
+      !(forcedLlmBasePath && forcedLlmSecret) &&
       !Object.keys(chatCompletionProviders).includes(provider)
     ) {
       return new Response("Unsupported provider", { status: 400 });
     }
 
     const providerBasePath =
-      forcedBasePath ||
+      forcedLlmBasePath ||
       chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
         .baseUrl;
 
-    const llmSecret = forcedBasePath
-      ? forcedSecret || undefined
+    const llmSecret = forcedLlmBasePath
+      ? forcedLlmSecret || undefined
       : chatCompletionProviders[
           provider as keyof typeof chatCompletionProviders
         ].secret;
@@ -364,7 +366,9 @@ export const POST = async (request: Request) => {
 
     if (completionMessage.tool_calls) {
       while (completionMessage.tool_calls) {
-        const client = createClient<any>(targetOpenapi, openapiUrl, {});
+        const client = createClient<any>(targetOpenapi, openapiUrl, {
+          access_token,
+        });
 
         const toolOutputMessages = await Promise.all(
           completionMessage.tool_calls.map(async (tool) => {

@@ -14,6 +14,29 @@
         "operationId": "createChatCompletion",
         "tags": ["Chat"],
         "summary": "Creates a model response for the given chat conversation.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-LLM-BASEPATH",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Force custom LLM API with this basePath. Must follow the POST /chat/completions standard."
+          },
+          {
+            "in": "header",
+            "name": "X-LLM-SECRET",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Force custom LLM with this Authorization header"
+          },
+          {
+            "in": "header",
+            "name": "X-OPENAPI-SECRET",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Force overwrite OpenAPI Secret, bypassing ActionSchema Auth"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -245,7 +268,7 @@
                     }
                   },
                   "model": {
-                    "description": "ID of the model to use.",
+                    "description": "ID of the model to use. Must be in format of '[provider]/[id]' and it's always required, even for custom models. The '[provider]/' prefix will be omitted when doing the actual model call.",
                     "type": "string"
                   },
                   "frequency_penalty": {

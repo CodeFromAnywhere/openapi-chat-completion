@@ -85,9 +85,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDummyChat();
 
-            // should verify openapiUrl 
+            // Should verify openapiUrl 
+            // If not valid, redirect to explore.html
+            // If yes, add data to recent urls in localStorage
+            // Threads get stored independently of openapiUrl. openapiUrl can be re-routed without trouble, making it dynamic.
             const openapiUrl = window.location.pathname;
-            //if not valid, redirect to explore.html
 
             console.log({ openapiUrl, chatCompletionBasePath: window.location.href })
 
