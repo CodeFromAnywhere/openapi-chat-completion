@@ -31,6 +31,9 @@
     </div>
 
     <script>
+
+        const data = {};
+
         const dummyChat = [
             { role: 'assistant', content: 'Hello! How can I assist you today?' },
             { role: 'user', content: 'Can you tell me about the repository?' },
@@ -82,12 +85,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDummyChat();
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const openapiUrl = urlParams.get('openapiUrl');
-            const operationIds = urlParams.get('operationIds');
-            const chatCompletionBasePath = new URL(window.location.href).origin + "/" + openapiUrl;
 
-            console.log({ chatCompletionBasePath })
+            console.log({ chatCompletionBasePath: window.location.href })
 
         });
     </script>

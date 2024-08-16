@@ -213,6 +213,23 @@ export const GET = async (request: Request) => {
     return new Response("Please put an openapiUrl in your pathname");
   }
 
+  const accept = request.headers.get("Accept");
+  if (accept?.startsWith("text/html")) {
+    // default for browsers, ensuring we get html for browsers, openapi otherwise
+    const template = await fetch(
+      new URL(request.url).origin + "/chat.html",
+    ).then((res) => res.text());
+    const data = { hello: "world" };
+    const html = template.replaceAll(
+      "const data = {}",
+      `const data = ${JSON.stringify(data)}`,
+    );
+    return new Response(html, {
+      status: 200,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+
   const targetOpenapi = await fetchOpenapi(openapiUrl);
   if (!targetOpenapi) {
     return new Response("OpenAPI not found", { status: 400 });
