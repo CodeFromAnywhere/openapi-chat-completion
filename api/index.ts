@@ -4,7 +4,7 @@ import {
   getSemanticOpenapi,
   tryParseJson,
 } from "openapi-util";
-
+/** chat completion endpoint  */
 const llmCall = async (context: {
   providerBasePath: string;
   llmSecret: string;
