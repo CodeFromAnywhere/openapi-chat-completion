@@ -1,6 +1,8 @@
 # OpenAPI Chat Completion
 
-Turns every OpenAPI into a /chat/completions endpoint, that in itself is exposed as OpenAPI as well
+Turns every OpenAPI into a /chat/completions endpoint, that in itself is exposed as OpenAPI as well.
+
+This is the successor of [Agent-Openapi](https://github.com/CodeFromAnywhere/agent-openapi). The biggest difference is it's fully stateless!!
 
 ## Getting started
 
