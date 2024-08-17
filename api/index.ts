@@ -2,175 +2,121 @@ import {
   createClient,
   fetchOpenapi,
   getSemanticOpenapi,
+  OpenapiDocument,
   tryParseJson,
 } from "openapi-util";
 
-/** chat completion endpoint  */
-const llmCall = async (context: {
+import {
+  ChatCompletionChunk,
+  ChatCompletionInput,
+  ChatCompletionOutput,
+  FullToolCallDelta,
+} from "./types";
+
+// can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
+//export const config = { runtime: "edge" };
+
+type StreamContext = {
+  access_token?: string;
+  openapiUrl: string;
+  targetOpenapi: OpenapiDocument;
   providerBasePath: string;
   llmSecret?: string;
   model: string;
   tools: any[];
   body: any;
   messages: any[];
-}) => {
-  const { body, llmSecret, messages, model, providerBasePath, tools } = context;
-  const response = await fetch(providerBasePath + "/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${llmSecret}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...body,
-      // only overwrite these
-      messages,
-      model,
-      tools,
-    } satisfies ChatCompletionInput),
-  })
-    .then(async (response) => {
-      const text = await response.text();
-      const json = tryParseJson<ChatCompletionOutput>(text);
-      if (response.status !== 200 || !json) {
-        return {
-          status: response.status,
-          statusText: response.statusText,
-          text,
-          json: undefined,
-        };
-      }
-      return {
-        status: response.status,
-        statusText: response.statusText,
-        text: undefined,
-        json,
-      };
-    })
-    .catch((e) => {
-      console.log("Couldn't do it", e);
-      return {
-        status: undefined,
-        statusText: undefined,
-        text: String(e.message),
-        json: undefined,
-      };
-    });
-  return response;
-};
-export type ChatCompletionInput = {
-  messages: Array<{
-    content:
-      | string
-      | Array<{
-          type: "text" | "image_url";
-          text?: string;
-          image_url?: {
-            url: string;
-            detail?: "auto" | "low" | "high";
-          };
-        }>;
-    role: "system" | "user" | "assistant" | "tool" | "function";
-    name?: string;
-    tool_call_id?: string;
-    tool_calls?: Array<{
-      id: string;
-      type: "function";
-      function: {
-        name: string;
-        arguments: string;
-      };
-    }>;
-    function_call?: {
-      name: string;
-      arguments: string;
-    };
-  }>;
-  model: string;
-  frequency_penalty?: number;
-  logit_bias?: Record<string, number>;
-  logprobs?: boolean;
-  top_logprobs?: number;
-  max_tokens?: number;
-  n?: number;
-  presence_penalty?: number;
-  response_format?: {
-    type: "text" | "json_object";
-  };
-  seed?: number;
-  stop?: string | string[];
-  stream?: boolean;
-  temperature?: number;
-  top_p?: number;
-  tools?: Array<{
-    type: "function";
-    function: {
-      description?: string;
-      name: string;
-      parameters?: Record<string, any>;
-    };
-  }>;
-  tool_choice?:
-    | "none"
-    | "auto"
-    | {
-        type: "function";
-        function: {
-          name: string;
-        };
-      };
-  user?: string;
 };
 
-export type ChatCompletionOutput = {
-  id: string;
-  choices: Array<{
-    finish_reason:
-      | "stop"
-      | "length"
-      | "tool_calls"
-      | "content_filter"
-      | "function_call";
-    index: number;
-    message: {
-      content: string;
-      tool_calls?: Array<{
-        id: string;
-        type: "function";
-        function: {
-          name: string;
-          arguments: string;
-        };
-      }>;
-      role: "assistant";
-      function_call?: {
-        name: string;
-        arguments: string;
-      };
-    };
-    logprobs: {
-      content: Array<{
-        token: string;
-        logprob: number;
-        bytes: number[] | null;
-        top_logprobs: Array<{
-          token: string;
-          logprob: number;
-          bytes: number[] | null;
-        }>;
-      }> | null;
-    } | null;
-  }>;
-  created: number;
-  model: string;
-  system_fingerprint: string;
-  object: "chat.completion";
-  usage: {
-    completion_tokens: number;
-    prompt_tokens: number;
-    total_tokens: number;
+const streamOpenAIResponse = async (
+  controller: ReadableStreamDefaultController<any>,
+  context: StreamContext,
+) => {
+  const { messages, model, providerBasePath, tools, llmSecret } = context;
+
+  if (!llmSecret) {
+    controller.enqueue(
+      new TextEncoder().encode("OpenAI API key not configured"),
+    );
+    controller.close();
+    return;
+  }
+
+  const body: ChatCompletionInput = {
+    ...context.body,
+    messages: messages,
+    model,
+    tools,
   };
+
+  const llmResponse = await fetch(`${providerBasePath}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${llmSecret}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!llmResponse.ok) {
+    const errorText = await llmResponse.text();
+    controller.enqueue(
+      new TextEncoder().encode(`\n\nLLM API error: ${errorText}`),
+    );
+    controller.close();
+    return;
+  }
+
+  const reader = llmResponse.body?.getReader();
+  if (!reader) {
+    controller.close();
+    return;
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let accumulatedMessage = "";
+  let toolCalls: ChatCompletionChunk["choices"][number]["delta"]["tool_calls"] =
+    [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.includes("[DONE]")) {
+        continue;
+      }
+
+      if (line.startsWith("data: ")) {
+        try {
+          const data: ChatCompletionChunk = JSON.parse(line.slice(6));
+          const delta = data.choices[0]?.delta;
+          // directly pass through the encoding on per-line basis, everything except [DONE]
+          controller.enqueue(new TextEncoder().encode("\n\n" + line));
+
+          if (delta?.tool_calls) {
+            toolCalls = toolCalls.concat(delta.tool_calls);
+          } else if (delta?.content) {
+            accumulatedMessage += delta.content;
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      }
+    }
+  }
+
+  return { accumulatedMessage, toolCalls };
 };
+
 const getPathUrl = (requestUrl: string) => {
   // Should expose an OpenAPI
   const requestUrlObject = new URL(requestUrl);
@@ -252,6 +198,144 @@ export const GET = async (request: Request) => {
   });
 };
 
+const getStream = async (
+  context: StreamContext,
+): Promise<{
+  stream?: ReadableStream<any>;
+  status?: number;
+  message?: string;
+}> => {
+  let { access_token, openapiUrl, targetOpenapi, messages, model } = context;
+  const stream = new ReadableStream({
+    async start(controller) {
+      while (true) {
+        // listen and pass through all messages
+        const result = await streamOpenAIResponse(controller, context);
+
+        if (!result) {
+          break;
+        }
+
+        const { accumulatedMessage, toolCalls } = result;
+
+        if (toolCalls.length === 0) {
+          break;
+        }
+
+        const client = createClient<any>(targetOpenapi, openapiUrl, {
+          access_token,
+        });
+
+        const uniqueToolcalls = (toolCalls as FullToolCallDelta[])
+          .filter((x) => x.type === "function")
+          .map((item) => {
+            // This is needed for openai!
+
+            const argumentConcat = (toolCalls as FullToolCallDelta[])
+              .filter((x) => x.index === item.index)
+              .map((x) => x.function.arguments)
+              .join("");
+
+            return {
+              ...item,
+              function: { ...item.function, arguments: argumentConcat },
+            };
+          });
+
+        // add assistant messages to final response
+        const message: ChatCompletionInput["messages"][number] = {
+          role: "assistant",
+          content: accumulatedMessage,
+          tool_calls: uniqueToolcalls,
+        };
+
+        //data:
+
+        messages.push(message);
+
+        const toolMessages = (
+          await Promise.all(
+            uniqueToolcalls.map(async (tool) => {
+              const result = client(
+                tool.function.name,
+                tryParseJson(tool.function.arguments) || undefined,
+              );
+
+              const message: ChatCompletionInput["messages"][number] = {
+                tool_call_id: tool.id,
+                role: "tool",
+                name: tool.function.name,
+                content: JSON.stringify(result),
+              };
+              return message;
+            }),
+          )
+        )
+          .filter((x) => !!x)
+          .map((x) => x!);
+
+        controller.enqueue(
+          new TextEncoder().encode(
+            "\n\ndata: " +
+              JSON.stringify({
+                id: "chatcmpl-SOMETHING",
+                object: "chat.completion.chunk",
+                created: Math.round(Date.now() / 1000),
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { role: "user", tools: toolMessages },
+                    logprobs: null,
+                    finish_reason: null,
+                  },
+                ],
+                x_actionschema: {
+                  //custom data
+                },
+              }),
+          ),
+        );
+
+        messages = messages.concat(toolMessages);
+      }
+
+      // TODO: Look at how this is done by chatgpt themselves...
+      const full_response = { done: true, messages };
+      controller.enqueue(
+        new TextEncoder().encode("\n\ndata: " + JSON.stringify(full_response)),
+      );
+      controller.enqueue(new TextEncoder().encode("\n\n[DONE]"));
+      controller.close();
+    },
+  });
+
+  return { stream, status: 200 };
+};
+
+async function streamToJsonResponse(stream: ReadableStream<any>) {
+  const reader = stream.getReader();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    // Here there should be some magic! We need to read in all chunks and turn it into a ChatCompletionOutput
+    result += new TextDecoder().decode(value);
+  }
+
+  // Assuming the result is valid JSON string
+  const jsonData: ChatCompletionOutput = JSON.parse('{ "ok": true }');
+
+  return new Response(JSON.stringify(jsonData), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+    },
+  });
+}
+
 export const POST = async (request: Request) => {
   const forcedLlmBasePath = request.headers.get("X-LLM-BASEPATH");
   const forcedLlmSecret = request.headers.get("X-LLM-SECRET");
@@ -264,7 +348,9 @@ export const POST = async (request: Request) => {
   );
 
   if (!openapiUrl) {
-    return new Response("Please put an openapiUrl in your pathname");
+    return new Response("Please put an openapiUrl in your pathname", {
+      status: 400,
+    });
   }
   const operationIds: string[] = [];
 
@@ -279,157 +365,99 @@ export const POST = async (request: Request) => {
     operationIds,
   );
   if (!semanticOpenapi) {
-    return new Response("OpenAPI not found", { status: 400 });
+    return new Response("SemanticOpenAPI not found", { status: 400 });
   }
 
-  try {
-    const body: ChatCompletionInput = await request.json();
+  const body: ChatCompletionInput = await request.json();
 
-    if (body.tools && body.tools.length > 0) {
-      return new Response("Tools need to be supplied through the OpenAPI", {
-        status: 500,
-      });
-    }
+  if (body.tools && body.tools.length > 0) {
+    return new Response("Tools need to be supplied through the OpenAPI", {
+      status: 400,
+    });
+  }
 
-    const [provider, ...chunks] = body.model.split("/");
-    const model = chunks.join("/");
+  const [provider, ...chunks] = body.model.split("/");
+  const model = chunks.join("/");
 
-    const chatCompletionProviders = {
-      groq: {
-        baseUrl: "https://api.groq.com/openai/v1",
-        secret: process.env.GROQ_SECRET,
-      },
-      openai: {
-        baseUrl: "https://api.openai.com/v1",
-        secret: process.env.OPENAI_SECRET,
+  const chatCompletionProviders = {
+    groq: {
+      baseUrl: "https://api.groq.com/openai/v1",
+      secret: process.env.GROQ_API_KEY,
+    },
+    openai: {
+      baseUrl: "https://api.openai.com/v1",
+      secret: process.env.OPENAI_API_KEY,
+    },
+  };
+
+  if (
+    !(forcedLlmBasePath && forcedLlmSecret) &&
+    !Object.keys(chatCompletionProviders).includes(provider)
+  ) {
+    return new Response("Unsupported provider", { status: 400 });
+  }
+
+  const providerBasePath =
+    forcedLlmBasePath ||
+    chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
+      .baseUrl;
+
+  const llmSecret = forcedLlmBasePath
+    ? forcedLlmSecret || undefined
+    : chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
+        .secret;
+
+  const tools: ChatCompletionInput["tools"] = Object.keys(
+    semanticOpenapi.properties,
+  ).map((operationId) => {
+    const { input, description, summary } =
+      semanticOpenapi.properties[operationId].properties;
+
+    // TODO: TBD if this is the best way
+    const fullDescription = summary ? summary + "\n\n" : "" + description || "";
+    return {
+      type: "function",
+      function: {
+        name: operationId,
+        description: fullDescription,
+        parameters: input,
       },
     };
+  });
 
-    if (
-      !(forcedLlmBasePath && forcedLlmSecret) &&
-      !Object.keys(chatCompletionProviders).includes(provider)
-    ) {
-      return new Response("Unsupported provider", { status: 400 });
-    }
+  // copy to keep body.messages original
+  let messages = [...body.messages];
+  const stream = body.stream;
 
-    const providerBasePath =
-      forcedLlmBasePath ||
-      chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
-        .baseUrl;
+  const readableStream = await getStream({
+    access_token,
+    openapiUrl,
+    targetOpenapi,
+    body,
+    messages,
+    model,
+    providerBasePath,
+    tools,
+    llmSecret,
+  });
 
-    const llmSecret = forcedLlmBasePath
-      ? forcedLlmSecret || undefined
-      : chatCompletionProviders[
-          provider as keyof typeof chatCompletionProviders
-        ].secret;
-
-    const tools: ChatCompletionInput["tools"] = Object.keys(
-      semanticOpenapi.properties,
-    ).map((operationId) => {
-      const { input, description, summary } =
-        semanticOpenapi.properties[operationId].properties;
-
-      // TODO: TBD if this is the best way
-      const fullDescription = summary
-        ? summary + "\n\n"
-        : "" + description || "";
-      return {
-        type: "function",
-        function: {
-          name: operationId,
-          description: fullDescription,
-          parameters: input,
-        },
-      };
+  if (!readableStream.stream) {
+    return new Response(readableStream.message, {
+      status: readableStream.status,
     });
-
-    // copy to keep body.messages original
-    const messages = [...body.messages];
-
-    const response = await llmCall({
-      providerBasePath,
-      llmSecret,
-      model,
-      tools,
-      body,
-      messages,
-    });
-
-    if (!response.json) {
-      return new Response(response.text, {
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
-
-    let completionMessage = response.json.choices[0].message;
-
-    if (completionMessage.tool_calls) {
-      while (completionMessage.tool_calls) {
-        const client = createClient<any>(targetOpenapi, openapiUrl, {
-          access_token,
-        });
-
-        const toolOutputMessages = await Promise.all(
-          completionMessage.tool_calls.map(async (tool) => {
-            const result = client(
-              tool.function.name,
-              tryParseJson(tool.function.arguments) || undefined,
-            );
-
-            return {
-              tool_call_id: tool.id,
-              role: "tool",
-              content: JSON.stringify(result),
-            };
-          }),
-        );
-
-        const followUpResponse = await llmCall({
-          providerBasePath,
-          body,
-          llmSecret,
-          messages: messages.concat(
-            toolOutputMessages as ChatCompletionInput["messages"],
-          ),
-          model,
-          tools,
-        });
-
-        completionMessage = followUpResponse.json?.choices[0].message!;
-        if (completionMessage) {
-          messages.push(completionMessage);
-        }
-      }
-    }
-
-    const responseMessages = messages.slice(body.messages.length);
-    if (responseMessages.length > 1) {
-      // Merge multiple messages into one
-      response.json.choices[0].message = {
-        role: "assistant",
-        content: responseMessages
-          .map((item) =>
-            typeof item.content === "string"
-              ? { type: "text", text: item.content }
-              : (item as unknown as {
-                  type: string;
-                  text?: string;
-                  image_url?: any;
-                }),
-          )
-          .map((item) =>
-            item.image_url ? `![](${item.image_url})` : item.text,
-          )
-          .join("\n\n"),
-      };
-    }
-
-    return new Response(JSON.stringify(response, undefined, 2), {
-      status: 200,
-      statusText: "OK",
-    });
-  } catch (e) {
-    return new Response("Something went wrong", { status: 500 });
   }
+
+  if (stream) {
+    return new Response(readableStream.stream, {
+      headers: {
+        "Content-Type": "text/plain",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
+  //rather than streaming, stream it inhere myself and accumulate the result into a single JSON
+  const response = await streamToJsonResponse(readableStream.stream);
+  return response;
 };

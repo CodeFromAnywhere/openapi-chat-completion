@@ -1,7 +1,35 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming API Example</title>
+</head>
 
 <body>
-    Fill an url
+    <h1>Streaming API Example</h1>
+    <button id="fetchButton">Fetch Streaming Data</button>
+    <pre id="output"></pre>
+
+    <script>
+        const fetchButton = document.getElementById('fetchButton');
+        const output = document.getElementById('output');
+
+        fetchButton.addEventListener('click', async () => {
+            output.textContent = '';
+            const response = await fetch('/api/completions');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                output.textContent += chunk;
+            }
+        });
+    </script>
 </body>
 
 </html>
