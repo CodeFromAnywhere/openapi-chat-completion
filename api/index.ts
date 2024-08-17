@@ -35,9 +35,9 @@ const streamOpenAIResponse = async (
   const { messages, model, providerBasePath, tools, llmSecret } = context;
 
   if (!llmSecret) {
-    controller.enqueue(
-      new TextEncoder().encode("OpenAI API key not configured"),
-    );
+    const error = "OpenAI API key not configured";
+    console.error(error);
+    controller.enqueue(new TextEncoder().encode(error));
     controller.close();
     return;
   }
@@ -60,15 +60,20 @@ const streamOpenAIResponse = async (
 
   if (!llmResponse.ok) {
     const errorText = await llmResponse.text();
-    controller.enqueue(
-      new TextEncoder().encode(`\n\nLLM API error: ${errorText}`),
-    );
+
+    const error = `\n\nLLM API error (${llmResponse.status} - ${llmResponse.statusText}) ${errorText}`;
+    console.error(error);
+    controller.enqueue(new TextEncoder().encode(error));
     controller.close();
     return;
   }
 
   const reader = llmResponse.body?.getReader();
   if (!reader) {
+    const error = `\n\nCouldn't get reader`;
+    console.error(error);
+    controller.enqueue(new TextEncoder().encode(error));
+
     controller.close();
     return;
   }
@@ -205,17 +210,25 @@ const getStream = async (
   status?: number;
   message?: string;
 }> => {
-  let { access_token, openapiUrl, targetOpenapi, messages, model } = context;
+  const { access_token, openapiUrl, targetOpenapi, model } = context;
+
+  let messages = context?.messages;
+
   const stream = new ReadableStream({
     async start(controller) {
       let loop = 0;
+
       while (true) {
+        // console.log(`messages before entry`, messages);
+
         loop++;
         // listen and pass through all messages
-        const result = await streamOpenAIResponse(controller, context);
+        const result = await streamOpenAIResponse(controller, {
+          ...context,
+          messages,
+        });
 
-        /////
-        console.log(loop, result);
+        // console.log({ loop, result });
 
         if (!result) {
           console.log("going out");
@@ -308,6 +321,7 @@ const getStream = async (
           ),
         );
 
+        // done for the next round
         messages = messages.concat(toolMessages);
       }
 
