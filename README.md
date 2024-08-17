@@ -42,7 +42,7 @@ With the above tooling, we can now create an agent that orchestrates certain tak
 
 # Finalise
 
-- Debug tools and make them functional
+- ✅ Debug tools and make them functional
 - Show indicators and little card when tool(s) are called and when they return, stop loading
 
 # Auth

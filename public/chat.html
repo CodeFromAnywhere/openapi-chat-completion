@@ -155,6 +155,16 @@
                                 assistantReply += content;
                                 updateAssistantMessage(assistantReply);
                             }
+                            const tool_calls = parsed.choices[0].delta.tool_calls;
+
+                            if (tool_calls) {
+                                updateAssistantMessageLoading(true)
+                            }
+                            const tools = parsed.choices[0].delta.tools;
+                            if (tools) {
+                                updateAssistantMessageLoading(false)
+                            }
+
                         } catch (e) {
                             console.error('Error parsing SSE:', e);
                         }
@@ -195,6 +205,34 @@
 
             const messageContent = assistantMessage.querySelector('.message-content');
             messageContent.innerHTML = marked.parse(content);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+
+        // Showing some nice loading indication
+        function updateAssistantMessageLoading(loading) {
+            console.log("LOADING INDEED", loading)
+            const chatContainer = document.getElementById('chat-container');
+            let assistantMessageLoading = chatContainer.querySelector('.current-message-loading');
+
+            if (loading === false) {
+                //remove again
+                assistantMessageLoading.remove();
+                return;
+            }
+
+            if (!assistantMessageLoading) {
+                assistantMessageLoading = document.createElement('div');
+                assistantMessageLoading.className = 'mb-2 text-left current-message-loading';
+                assistantMessageLoading.textContent = `🕵️‍♂️`
+                chatContainer.appendChild(assistantMessageLoading);
+            }
+
+
+            const messageContent = chatContainer.querySelector('.message-content-loading');
+            if (messageContent) {
+                messageContent.textContent = `🕵️‍♂️`
+            }
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
