@@ -1,10 +1,10 @@
-# Agent OpenAPI
+# OpenAPI Chat Completion
 
-Turn your agents into tools for other agents.
+Turns every OpenAPI into a /chat/completions endpoint, that in itself is exposed as OpenAPI as well
 
 ## Getting started
 
-See https://agent.actionschema.com
+See https://chat.actionschema.com
 
 ## Why?
 
