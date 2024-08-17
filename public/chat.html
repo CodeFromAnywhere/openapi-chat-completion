@@ -165,7 +165,9 @@
 
             const chatContainer = document.getElementById('chat-container');
             let assistantMessage = chatContainer.querySelector('.current-message');
-            assistantMessage.className = 'mb-6'
+            if (assistantMessage) {
+                assistantMessage.className = 'mb-6'
+            }
 
 
             // Add the complete assistant reply to the thread
