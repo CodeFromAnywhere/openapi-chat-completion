@@ -4,6 +4,6 @@
     "@types/node": "^22.3.0"
   },
   "dependencies": {
-    "openapi-util": "^0.0.139"
+    "openapi-util": "^0.0.141"
   }
 }

@@ -213,8 +213,12 @@ const getStream = async (
         loop++;
         // listen and pass through all messages
         const result = await streamOpenAIResponse(controller, context);
+
+        /////
         console.log(loop, result);
+
         if (!result) {
+          console.log("going out");
           break;
         }
 
@@ -244,6 +248,8 @@ const getStream = async (
             };
           });
 
+        console.log({ uniqueToolcalls });
+
         // add assistant messages to final response
         const message: ChatCompletionInput["messages"][number] = {
           role: "assistant",
@@ -258,7 +264,7 @@ const getStream = async (
         const toolMessages = (
           await Promise.all(
             uniqueToolcalls.map(async (tool) => {
-              const result = client(
+              const result = await client(
                 tool.function.name,
                 tryParseJson(tool.function.arguments) || undefined,
               );
@@ -275,6 +281,8 @@ const getStream = async (
         )
           .filter((x) => !!x)
           .map((x) => x!);
+
+        console.log({ toolMessages });
 
         controller.enqueue(
           new TextEncoder().encode(
@@ -304,10 +312,10 @@ const getStream = async (
       }
 
       // TODO: Look at how this is done by chatgpt themselves...
-      const full_response = { done: true, messages };
-      controller.enqueue(
-        new TextEncoder().encode("\n\ndata: " + JSON.stringify(full_response)),
-      );
+      // const full_response = { done: true, messages };
+      // controller.enqueue(
+      //   new TextEncoder().encode("\n\ndata: " + JSON.stringify(full_response)),
+      // );
       controller.enqueue(new TextEncoder().encode("\n\n[DONE]"));
       controller.close();
     },
@@ -451,6 +459,7 @@ export const POST = async (request: Request) => {
   });
 
   if (!readableStream.stream) {
+    console.log("NO STREAM BACK");
     return new Response(readableStream.message, {
       status: readableStream.status,
     });
