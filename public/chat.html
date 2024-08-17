@@ -6,93 +6,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Chat Interface</h1>
-        </header>
-        <main class="bg-white rounded-lg shadow-md p-6">
-            <div id="chatContainer" class="space-y-4 mb-4 h-96 overflow-y-auto">
-                <!-- Chat messages will be inserted here -->
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Chat Interface</h1>
+            <div>
+                <a href="/explore.html"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Explore</a>
+                <a href="/settings.html"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">Settings</a>
+                <button id="new-thread-button"
+                    class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">New Thread</button>
             </div>
-            <div class="flex">
-                <input type="text" id="userInput"
-                    class="flex-grow border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Type your message...">
-                <button id="sendButton"
-                    class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </main>
+        </div>
+
+        <div id="chat-container" class="bg-white shadow-md rounded p-4 mb-4 h-[80vh] overflow-y-auto">
+            <!-- Chat messages will be dynamically added here -->
+        </div>
+
+        <div class="flex">
+            <input id="user-input" type="text"
+                class="flex-grow shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Type your message...">
+            <button id="send-button"
+                class="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Send</button>
+        </div>
     </div>
 
     <script>
 
-        const data = {};
 
-        const dummyChat = [
-            { role: 'assistant', content: 'Hello! How can I assist you today?' },
-            { role: 'user', content: 'Can you tell me about the repository?' },
-            { role: 'assistant', content: 'Certainly! This repository contains a project that... [truncated for brevity]' },
-            { role: 'user', content: 'What are the main features?' },
-            { role: 'assistant', content: 'The main features of this project include... [truncated for brevity]' }
-        ];
+        // Get the OpenAPI URL from the current path
+        const currentPath = window.location.pathname;
+        const openapiUrl = currentPath.endsWith('/chat/completions')
+            ? currentPath.slice(1, -1 * '/chat/completions'.length)
+            : currentPath.slice(1);  // Remove leading '/'
 
-        const chatContainer = document.getElementById('chatContainer');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
+        // Check if X-LLM options are set
 
-        function addMessage(role, content) {
+        const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
+
+
+        // Add openapiUrl to recentOpenapis in localStorage
+        const recentOpenapis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
+        const existingIndex = recentOpenapis.findIndex(api => api.openapiUrl === openapiUrl);
+        const apiInfo = {
+            openapiUrl,
+            title: openapiUrl,
+            description: 'No description available'
+        };
+        if (existingIndex !== -1) {
+            recentOpenapis[existingIndex] = apiInfo;
+        } else {
+            recentOpenapis.push(apiInfo);
+        }
+        localStorage.setItem('recentOpenapis', JSON.stringify(recentOpenapis));
+
+        // Load or create active thread
+        let activeThreadId = localStorage.getItem('activeThreadId');
+        if (!activeThreadId) {
+            activeThreadId = Date.now().toString();
+            localStorage.setItem('activeThreadId', activeThreadId);
+        }
+
+        let threads = JSON.parse(localStorage.getItem('threads')) || {};
+        if (!threads[activeThreadId]) {
+            threads[activeThreadId] = [];
+        }
+
+        // Function to create a new thread
+        function createNewThread() {
+            activeThreadId = Date.now().toString();
+            localStorage.setItem('activeThreadId', activeThreadId);
+            threads[activeThreadId] = [];
+            localStorage.setItem('threads', JSON.stringify(threads));
+            clearChatContainer();
+        }
+
+        // Function to clear the chat container
+        function clearChatContainer() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.innerHTML = '';
+        }
+
+        // Updated function to add a message to the chat
+        function addMessageToChat(role, content) {
+            const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-
-            const innerDiv = document.createElement('div');
-            innerDiv.className = `max-w-xs ${role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3`;
-            innerDiv.textContent = content;
-
-            messageDiv.appendChild(innerDiv);
+            messageDiv.className = `mb-2 ${role === 'user' ? 'text-right' : 'text-left'}`;
+            messageDiv.innerHTML = `
+                <span class="inline-block bg-${role === 'user' ? 'blue' : 'gray'}-200 rounded max-w-[800px]  px-2 py-1">
+                    <strong>${role}:</strong> <span class="message-content">${marked.parse(content)}</span>
+                </span>
+            `;
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function loadDummyChat() {
-            dummyChat.forEach(message => addMessage(message.role, message.content));
+        // Function to send a message to the API
+        async function sendMessage(message) {
+            const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
+            const modelString = localStorage.getItem('modelString') || '';
+
+            const response = await fetch(`${window.location.origin}/${openapiUrl}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...xHeaders
+                },
+                body: JSON.stringify({
+                    model: modelString || "openai/gpt-4o",
+                    messages: threads[activeThreadId].map(msg => ({ role: msg.role, content: msg.message })),
+                    stream: true
+                })
+            });
+
+
+            if (response.status !== 200) {
+                alert(`${response.status}: ${await response.text()}`)
+                return;
+            }
+
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let assistantReply = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+                        try {
+                            const parsed = JSON.parse(data);
+                            const content = parsed.choices[0].delta.content;
+                            if (content) {
+                                assistantReply += content;
+                                updateAssistantMessage(assistantReply);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing SSE:', e);
+                        }
+                    }
+                }
+            }
+
+
+            const chatContainer = document.getElementById('chat-container');
+            let assistantMessage = chatContainer.querySelector('.current-message');
+            assistantMessage.className = 'mb-6'
+
+
+            // Add the complete assistant reply to the thread
+            threads[activeThreadId].push({ role: 'assistant', message: assistantReply });
+            localStorage.setItem('threads', JSON.stringify(threads));
+
         }
 
-        function sendMessage() {
+        // Function to update the assistant's message as it streams in
+        function updateAssistantMessage(content) {
+            const chatContainer = document.getElementById('chat-container');
+            let assistantMessage = chatContainer.querySelector('.current-message');
+
+            if (!assistantMessage) {
+                assistantMessage = document.createElement('div');
+                assistantMessage.className = 'mb-2 text-left current-message';
+                assistantMessage.innerHTML = `
+                    <span class="inline-block bg-gray-200 rounded px-2 py-1">
+                        <strong>assistant:</strong> <span class="message-content"></span>
+                    </span>
+                `;
+                chatContainer.appendChild(assistantMessage);
+            }
+
+
+            const messageContent = assistantMessage.querySelector('.message-content');
+            messageContent.innerHTML = marked.parse(content);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Event listener for send button
+        document.getElementById('send-button').addEventListener('click', () => {
+            const userInput = document.getElementById('user-input');
             const message = userInput.value.trim();
             if (message) {
-                addMessage('user', message);
+                addMessageToChat('user', message);
+                threads[activeThreadId].push({ role: 'user', message: message });
+                localStorage.setItem('threads', JSON.stringify(threads));
                 userInput.value = '';
-                // Simulated response
-                setTimeout(() => {
-                    addMessage('assistant', 'I understand. Can you please provide more details about your question?');
-                }, 1000);
-            }
-        }
-
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
+                sendMessage(message);
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDummyChat();
+        // Event listener for Enter key in input field
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('send-button').click();
+            }
+        });
 
-            // Should verify openapiUrl 
-            // If not valid, redirect to explore.html
-            // If yes, add data to recent urls in localStorage
-            // Threads get stored independently of openapiUrl. openapiUrl can be re-routed without trouble, making it dynamic.
-            const openapiUrl = window.location.pathname;
+        // Event listener for new thread button
+        document.getElementById('new-thread-button').addEventListener('click', createNewThread);
 
-            console.log({ openapiUrl, chatCompletionBasePath: window.location.href })
-
+        // Load existing messages for the active thread
+        threads[activeThreadId].forEach(msg => {
+            addMessageToChat(msg.role, msg.message);
         });
     </script>
 </body>

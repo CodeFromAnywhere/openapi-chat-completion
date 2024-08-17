@@ -4,31 +4,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streaming API Example</title>
+    <title>Explore APIs and Threads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <h1>Streaming API Example</h1>
-    <button id="fetchButton">Fetch Streaming Data</button>
-    <pre id="output"></pre>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6">Explore APIs and Threads</h1>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Recent OpenAPIs</h2>
+                <div id="recentApis" class="space-y-4">
+                    <!-- Recent APIs will be dynamically added here -->
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Conversation Threads</h2>
+                <div id="threads" class="space-y-4">
+                    <!-- Threads will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const fetchButton = document.getElementById('fetchButton');
-        const output = document.getElementById('output');
+        // Function to create a card for an API
+        function createApiCard(api) {
+            return `
+                <div class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="navigateToApi('${api.openapiUrl}')">
+                    <h3 class="text-xl font-semibold mb-2">${api.title}</h3>
+                    <p class="text-gray-600">${api.description}</p>
+                </div>
+            `;
+        }
 
-        fetchButton.addEventListener('click', async () => {
-            output.textContent = '';
-            const response = await fetch('/api/completions');
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+        // Function to create a card for a thread
+        function createThreadCard(threadId, messages) {
+            const lastMessage = messages[messages.length - 1];
+            return `
+                <div class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="switchThread('${threadId}')">
+                    <h3 class="text-xl font-semibold mb-2">Thread ${threadId}</h3>
+                    <p class="text-gray-600">${lastMessage.role}: ${lastMessage.message.substring(0, 50)}...</p>
+                </div>
+            `;
+        }
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                const chunk = decoder.decode(value, { stream: true });
-                output.textContent += chunk;
-            }
+        // Function to navigate to an API
+        function navigateToApi(openapiUrl) {
+            window.location.href = `/${openapiUrl}`;
+        }
+
+        // Function to switch to a thread
+        function switchThread(threadId) {
+            localStorage.setItem('activeThreadId', threadId);
+            alert(`Switched to thread ${threadId}`);
+            // You might want to redirect to the chat page or update the UI here
+        }
+
+        // Load and display recent APIs
+        const recentApis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
+        const recentApisContainer = document.getElementById('recentApis');
+        recentApis.forEach(api => {
+            recentApisContainer.innerHTML += createApiCard(api);
         });
+
+        // Load and display threads
+        const threads = JSON.parse(localStorage.getItem('threads')) || {};
+        const threadsContainer = document.getElementById('threads');
+        Object.entries(threads).forEach(([threadId, messages]) => {
+            threadsContainer.innerHTML += createThreadCard(threadId, messages);
+        });
+
+        // Highlight active thread
+        const activeThreadId = localStorage.getItem('activeThreadId');
+        if (activeThreadId) {
+            const activeThread = document.querySelector(`[onclick="switchThread('${activeThreadId}')"]`);
+            if (activeThread) {
+                activeThread.classList.add('ring-2', 'ring-blue-500');
+            }
+        }
     </script>
 </body>
 

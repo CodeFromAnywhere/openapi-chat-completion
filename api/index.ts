@@ -208,10 +208,12 @@ const getStream = async (
   let { access_token, openapiUrl, targetOpenapi, messages, model } = context;
   const stream = new ReadableStream({
     async start(controller) {
+      let loop = 0;
       while (true) {
+        loop++;
         // listen and pass through all messages
         const result = await streamOpenAIResponse(controller, context);
-
+        console.log(loop, result);
         if (!result) {
           break;
         }
@@ -342,20 +344,25 @@ export const POST = async (request: Request) => {
   const forcedOpenapiSecret = request.headers.get("X-OPENAPI-SECRET");
   // for now, must be forced through a header
   const access_token = forcedOpenapiSecret || undefined;
+
   const openapiUrl = withoutPathnameSuffix(
     getPathUrl(request.url),
     "/chat/completions",
   );
+
+  console.log("entered", { access_token, openapiUrl });
 
   if (!openapiUrl) {
     return new Response("Please put an openapiUrl in your pathname", {
       status: 400,
     });
   }
-  const operationIds: string[] = [];
+
+  // TODO: Get this from thing
+  const operationIds: string[] | undefined = undefined; //[];
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
-  if (!targetOpenapi) {
+  if (!targetOpenapi || !targetOpenapi.paths) {
     return new Response("OpenAPI not found", { status: 400 });
   }
 
@@ -364,12 +371,14 @@ export const POST = async (request: Request) => {
     openapiUrl,
     operationIds,
   );
+
   if (!semanticOpenapi) {
+    console.log({ targetOpenapi, openapiUrl });
     return new Response("SemanticOpenAPI not found", { status: 400 });
   }
 
   const body: ChatCompletionInput = await request.json();
-
+  console.log({ body });
   if (body.tools && body.tools.length > 0) {
     return new Response("Tools need to be supplied through the OpenAPI", {
       status: 400,
@@ -378,7 +387,7 @@ export const POST = async (request: Request) => {
 
   const [provider, ...chunks] = body.model.split("/");
   const model = chunks.join("/");
-
+  console.log({ model });
   const chatCompletionProviders = {
     groq: {
       baseUrl: "https://api.groq.com/openai/v1",

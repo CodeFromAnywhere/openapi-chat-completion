@@ -26,29 +26,6 @@ learnings
 - Antlike navigation on the internet... 🐜🐜🐜🐜 kan het?
 - sometimes you really need to simplify and start from first principles looking, observing at what you have and what you want, and decide the simplest version of the most important things that is getting you to a different result than before.
 
-# settings.html
-
-- edit headers
-- edit model
-
-# chat.html
-
-Is single chat!!!
-
-Should verify openapiUrl
-
-- If no authToken and no overwrite authToken redirect to login
-- If openapi not valid, redirect to explore.html
-- If yes, add data to recent urls in localStorage
-
-🔥 Threads get stored independently of openapiUrl, only in localStorage. OpenapiUrl can be re-routed without trouble, making it dynamic while keeping thread as-is.
-
-# explore.html
-
-List recent tools (localStorage)
-
-List recent threads (localStorage)
-
 # Finalise
 
 - Create test endpoint that simply calls /chat/completion

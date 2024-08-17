@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold mb-2">Settings</h1>
+            <a href="#" id="backButton" class="text-blue-500 hover:text-blue-700">&larr; Back to Repository</a>
+        </header>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-2xl font-semibold mb-4">X-Headers</h2>
+            <div id="headers-container">
+                <!-- Headers will be dynamically added here -->
+            </div>
+            <button id="addHeader" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Add Header
+            </button>
+        </div>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-2xl font-semibold mb-4">Model Settings</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="modelString">
+                    Model String
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="modelString" type="text" placeholder="Enter model string">
+            </div>
+        </div>
+
+        <button id="saveSettings" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Save Settings
+        </button>
+    </div>
+
+    <script>
+        // Load existing headers and model string from localStorage
+        const headers = JSON.parse(localStorage.getItem('x-headers')) || {};
+        const modelString = localStorage.getItem('modelString') || '';
+
+        // Populate headers
+        const headersContainer = document.getElementById('headers-container');
+        function addHeaderInput(key = '', value = '') {
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'mb-4 flex items-center';
+            headerDiv.innerHTML = `
+                <input class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2" type="text" placeholder="Header Key" value="${key}">
+                <input class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2" type="text" placeholder="Header Value" value="${value}">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded delete-header">Delete</button>
+            `;
+            headersContainer.appendChild(headerDiv);
+        }
+
+        // Add existing headers
+        for (const [key, value] of Object.entries(headers)) {
+            addHeaderInput(key, value);
+        }
+
+        // Add new header input
+        document.getElementById('addHeader').addEventListener('click', () => addHeaderInput());
+
+        // Delete header
+        headersContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-header')) {
+                e.target.closest('div').remove();
+            }
+        });
+
+        // Set model string
+        document.getElementById('modelString').value = modelString;
+
+        // Save settings
+        document.getElementById('saveSettings').addEventListener('click', () => {
+            const newHeaders = {};
+            document.querySelectorAll('#headers-container > div').forEach(div => {
+                const key = div.querySelector('input:first-child').value.trim();
+                const value = div.querySelector('input:last-of-type').value.trim();
+                if (key && value) {
+                    newHeaders[key] = value;
+                }
+            });
+
+            const newModelString = document.getElementById('modelString').value.trim();
+
+            localStorage.setItem('x-headers', JSON.stringify(newHeaders));
+            localStorage.setItem('modelString', newModelString);
+
+            alert('Settings saved successfully!');
+        });
+
+        // Back button functionality
+        document.getElementById('backButton').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Replace with actual repository URL
+            window.history.back();
+        });
+    </script>
+</body>
+
+</html>
