@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Eight Frame Layout - Chat Pages with Mobile Redirection</title>
+    <script>
+        // Function to check screen size and redirect if necessary
+        function checkScreenSize() {
+            if (window.innerWidth <= 768) {  // Common breakpoint for mobile devices
+                window.location.href = "chat.html";
+            }
+        }
+
+        // Run the check when the page loads
+        window.onload = checkScreenSize;
+
+        // Also run the check if the window is resized
+        window.onresize = checkScreenSize;
+    </script>
+</head>
+<frameset cols="25%,25%,25%,25%">
+    <frameset rows="50%,50%">
+        <frame src="chat.html" />
+        <frame src="chat.html" />
+    </frameset>
+    <frameset rows="50%,50%">
+        <frame src="chat.html" />
+        <frame src="chat.html" />
+    </frameset>
+    <frameset rows="50%,50%">
+        <frame src="chat.html" />
+        <frame src="chat.html" />
+    </frameset>
+    <frameset rows="50%,50%">
+        <frame src="chat.html" />
+        <frame src="chat.html" />
+    </frameset>
+</frameset>
+
+</html>

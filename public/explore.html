@@ -30,6 +30,15 @@
     </div>
 
     <script>
+
+        // Function to create a new thread
+        function createNewThread() {
+            activeThreadId = Date.now().toString();
+            localStorage.setItem('activeThreadId', activeThreadId);
+            threads[activeThreadId] = [];
+            localStorage.setItem('threads', JSON.stringify(threads));
+        }
+
         // Function to create a card for an API
         function createApiCard(api) {
             return `
