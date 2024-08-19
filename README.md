@@ -40,27 +40,27 @@ With the above tooling, we can now create an agent that orchestrates certain tak
 
 # TODO:
 
-# Finalise
-
-- ✅ Debug tools and make them functional
-- ✅ Show indicators and little card when tool(s) are called and when they return, stop loading
-
-# Simplified Chat
-
-- GET `/chat/simple` should stream to raw text.
 - An API CLI that can run streaming APIs and regular APIs would be cool!
 
 # Improved Simplified UI
 
-Optimise it to work perfectly with `MenubarX` (small mobile layout)
+✅ Optimise it to work perfectly with `MenubarX` (small mobile layout)
 
-Create a page that is used if you open chat.actionschema.com that has 6 or 8 chats as iframes on desktop (based on the window width) or it has just one if it's a mobile view.
+✅ Create a page that is used if you open chat.actionschema.com that has 6 or 8 chats as iframes on desktop (based on the window width) or it has just one if it's a mobile view.
 
-Every iframe should open the explorer which also has a search for actions.
+✅ Every iframe should open the explorer
 
-The new thread button should just go to explore, where the last openapi is the most prevalent one.
+✅ The new thread button should just go to explore
 
-Every thread should keep track of the last openapi it was at, so we can come back to it. In explore, top 5 recent conversations are at the top with "show more" to see all .
+Every thread should keep track of the last openapi it was at, so we can come back to it.
+
+Explore:
+
+- button 'new' on top
+- top 5 recent conversations are at the top with "show more" to see all .
+- facilitate openapi info
+- the last openapi is the most prevalent one.
+- search through openapis
 
 # Auth
 

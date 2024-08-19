@@ -27,3 +27,14 @@ learnings
 UI
 
 - ✅ Created chat, settings, and explore and fixed some nasty bugs
+- ✅ Added frames layout
+
+# Finalise
+
+- ✅ Debug tools and make them functional
+- ✅ Show indicators and little card when tool(s) are called and when they return, stop loading
+
+# Simplified Chat
+
+- ✅ GET `/chat/simple` should stream to raw text.
+- ✅ simplified routing

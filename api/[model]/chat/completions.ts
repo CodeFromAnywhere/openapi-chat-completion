@@ -144,7 +144,7 @@ export const GET = async (request: Request) => {
       status: 200,
       headers: {
         "Content-Type": "text/html",
-        "Cache-Control": "max-age=3600, s-maxage=3600",
+        "Cache-Control": "max-age=60, s-maxage=60",
       },
     });
   }

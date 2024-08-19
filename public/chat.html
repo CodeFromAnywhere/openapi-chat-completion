@@ -45,35 +45,45 @@
         const urlParams = new URLSearchParams(window.location.search);
         const openapiUrl = urlParams.get('openapiUrl');
 
+        fetch(openapiUrl).then(res => res.json()).then(json => {
+
+            const recentOpenapis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
+            const existingIndex = recentOpenapis.findIndex(api => api.openapiUrl === openapiUrl);
+
+            const apiInfo = {
+                openapiUrl,
+                title: json?.info?.title || "Untitled",
+                description: json.info.description.slice(0, 100) + json.info.description.length > 100 ? ".." : ""
+            };
+
+            if (existingIndex !== -1) {
+                recentOpenapis[existingIndex] = apiInfo;
+            } else {
+                recentOpenapis.push(apiInfo);
+            }
+
+            localStorage.setItem('recentOpenapis', JSON.stringify(recentOpenapis));
+
+
+        }).catch(e => { })
         // Check if X-LLM options are set
         const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
 
 
         // Add openapiUrl to recentOpenapis in localStorage
-        const recentOpenapis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
-        const existingIndex = recentOpenapis.findIndex(api => api.openapiUrl === openapiUrl);
-        const apiInfo = {
-            openapiUrl,
-            title: openapiUrl,
-            description: 'No description available'
-        };
-        if (existingIndex !== -1) {
-            recentOpenapis[existingIndex] = apiInfo;
-        } else {
-            recentOpenapis.push(apiInfo);
-        }
-        localStorage.setItem('recentOpenapis', JSON.stringify(recentOpenapis));
+
 
         // Load or create active thread
-        let activeThreadId = localStorage.getItem('activeThreadId');
+        let activeThreadId = sessionStorage.getItem('activeThreadId');
+
         if (!activeThreadId) {
             activeThreadId = Date.now().toString();
-            localStorage.setItem('activeThreadId', activeThreadId);
+            sessionStorage.setItem('activeThreadId', activeThreadId);
         }
 
         let threads = JSON.parse(localStorage.getItem('threads')) || {};
         if (!threads[activeThreadId]) {
-            threads[activeThreadId] = [];
+            threads[activeThreadId] = { messages: [], openapiUrl }
         }
 
         // Updated function to add a message to the chat
@@ -93,9 +103,9 @@
         // Function to send a message to the API
         async function sendMessage(message) {
             const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
-            const modelString = localStorage.getItem('modelString') || '';
 
-            const model = modelString || "openai.gpt-4o-mini";
+
+            const model = localStorage.getItem('modelString') || "openai.gpt-4o-mini";
 
             const response = await fetch(`${window.location.origin}/${model}/chat/completions?openapiUrl=${openapiUrl}`, {
                 method: 'POST',
@@ -104,7 +114,7 @@
                     ...xHeaders
                 },
                 body: JSON.stringify({
-                    messages: threads[activeThreadId].map(msg => ({ role: msg.role, content: msg.message })),
+                    messages: threads[activeThreadId].messages.map(msg => ({ role: msg.role, content: msg.message })),
                     stream: true
                 })
             });
@@ -166,7 +176,7 @@
 
 
             // Add the complete assistant reply to the thread
-            threads[activeThreadId].push({ role: 'assistant', message: assistantReply });
+            threads[activeThreadId].messages.push({ role: 'assistant', message: assistantReply });
             localStorage.setItem('threads', JSON.stringify(threads));
 
         }
@@ -227,7 +237,7 @@
             const message = userInput.value.trim();
             if (message) {
                 addMessageToChat('user', message);
-                threads[activeThreadId].push({ role: 'user', message: message });
+                threads[activeThreadId].messages.push({ role: 'user', message: message });
                 localStorage.setItem('threads', JSON.stringify(threads));
                 userInput.value = '';
                 sendMessage(message);
@@ -244,7 +254,7 @@
 
 
         // Load existing messages for the active thread
-        threads[activeThreadId].forEach(msg => {
+        threads[activeThreadId].messages.forEach(msg => {
             addMessageToChat(msg.role, msg.message);
         });
     </script>
