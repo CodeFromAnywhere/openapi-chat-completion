@@ -11,7 +11,10 @@
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
         <div>
-            <h2 class="text-lg font-semibold mb-4">Recent Threads</h2>
+            <div class="flex flex-row justify-between items-center">
+                <h2 class="text-lg font-semibold mb-4">Recent Threads</h2>
+                <a href="#" onclick="createNewThread()">New</a>
+            </div>
             <div id="threads" class="space-y-4">
                 <!-- Threads will be dynamically added here -->
             </div>
@@ -22,32 +25,34 @@
 
         // Function to create a new thread
         function createNewThread() {
-            activeThreadId = Date.now().toString();
-            localStorage.setItem('activeThreadId', activeThreadId);
-            threads[activeThreadId] = [];
+
+
+            const newThreadId = Date.now().toString();
+            localStorage.setItem('activeThreadId', newThreadId);
+
+            const openapiUrl = localStorage.getItem('recentOpenapis')?.[0]?.openapiUrl || `https://search.actionschema.com/openapi.json`;
+
+            threads[newThreadId] = { messages: [], openapiUrl }
+
             localStorage.setItem('threads', JSON.stringify(threads));
+
+            navigateToApi(openapiUrl)
         }
 
-        // Function to create a card for an API
-        // function createApiCard(api) {
-        //     return `
-        //         <div class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="navigateToApi('${api.openapiUrl}')">
-        //             <h3 class="text-xl font-semibold mb-2">${api.title}</h3>
-        //             <p class="text-gray-600">${api.description}</p>
-        //         </div>
-        //     `;
-        // }
+
 
         // Function to create a card for a thread
         function createThreadCard(threadId, item) {
-            const lastMessage = item.messages[item.messages.length - 1];
+            const lastMessage = item.messages ? item.messages[item.messages.length - 1] : undefined;
             const title = localStorage.getItem('recentOpenapis')?.find(x => x.openapiUrl === item.openapiUrl).title;
 
             return `
-                <a href="#" onclick="navigateToApi('${item.openapiUrl}')" class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="switchThread('${threadId}')">
+                <div onclick="navigateToApi('${item.openapiUrl}')" class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="switchThread('${threadId}')">
+
                     <h3 class="text-lg font-semibold mb-2">${title || "Untitled"}</h3>
-                    <p class="text-gray-600">${lastMessage.role}: ${lastMessage.message.substring(0, 50)}..</p>
-                </a>
+                    ${lastMessage ? `<p class="text-gray-600">${lastMessage.role}: ${lastMessage.message.substring(0, 50)}..</p>` : ''}
+
+                </div>
             `;
         }
 

@@ -11,6 +11,6 @@
     "@upstash/redis": "^1.34.0",
     "@vercel/functions": "^1.4.0",
     "edge-util": "^0.0.27",
-    "openapi-util": "^0.0.141"
+    "openapi-util": "^0.0.144"
   }
 }
