@@ -56,9 +56,9 @@ Every thread should keep track of the last openapi it was at, so we can come bac
 
 Explore:
 
-- button 'new' on top
-- top 5 recent conversations are at the top with "show more" to see all .
-- facilitate openapi info
+- 🟠 button 'new' on top --> **must open clean slate**
+- recent conversations are at the top
+- render openapi info
 - the last openapi is the most prevalent one.
 - search through openapis
 

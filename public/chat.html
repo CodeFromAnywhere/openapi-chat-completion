@@ -69,10 +69,6 @@
         // Check if X-LLM options are set
         const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
 
-
-        // Add openapiUrl to recentOpenapis in localStorage
-
-
         // Load or create active thread
         let activeThreadId = sessionStorage.getItem('activeThreadId');
 
@@ -254,7 +250,7 @@
 
 
         // Load existing messages for the active thread
-        threads[activeThreadId].messages.forEach(msg => {
+        (threads[activeThreadId].messages || []).forEach(msg => {
             addMessageToChat(msg.role, msg.message);
         });
     </script>

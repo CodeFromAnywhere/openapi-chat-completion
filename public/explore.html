@@ -24,19 +24,19 @@
     <script>
 
         // Function to create a new thread
-        function createNewThread() {
+        async function createNewThread() {
 
+            const threads = JSON.parse(localStorage.getItem('threads') || '{}')
 
             const newThreadId = Date.now().toString();
-            localStorage.setItem('activeThreadId', newThreadId);
-
             const openapiUrl = localStorage.getItem('recentOpenapis')?.[0]?.openapiUrl || `https://search.actionschema.com/openapi.json`;
 
             threads[newThreadId] = { messages: [], openapiUrl }
 
             localStorage.setItem('threads', JSON.stringify(threads));
 
-            navigateToApi(openapiUrl)
+
+            navigateToApi(openapiUrl, newThreadId)
         }
 
 
@@ -44,12 +44,16 @@
         // Function to create a card for a thread
         function createThreadCard(threadId, item) {
             const lastMessage = item.messages ? item.messages[item.messages.length - 1] : undefined;
-            const title = localStorage.getItem('recentOpenapis')?.find(x => x.openapiUrl === item.openapiUrl).title;
+            const recent = JSON.parse(localStorage.getItem('recentOpenapis') || []);
+            console.log({ recent })
+            const api = recent.find(x => x.openapiUrl === item.openapiUrl);
+
+
 
             return `
-                <div onclick="navigateToApi('${item.openapiUrl}')" class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="switchThread('${threadId}')">
+                <div onclick="navigateToApi('${item.openapiUrl}','${threadId}')" class="bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
 
-                    <h3 class="text-lg font-semibold mb-2">${title || "Untitled"}</h3>
+                    <h3 class="text-lg font-semibold mb-2">${api ? api.title : "Untitled"}</h3>
                     ${lastMessage ? `<p class="text-gray-600">${lastMessage.role}: ${lastMessage.message.substring(0, 50)}..</p>` : ''}
 
                 </div>
@@ -57,7 +61,8 @@
         }
 
         // Function to navigate to an API
-        function navigateToApi(openapiUrl) {
+        function navigateToApi(openapiUrl, threadId) {
+            switchThread(threadId)
             window.location.href = `/openai.gpt-4o-mini/chat/completions?openapiUrl=${openapiUrl}`;
         }
 
@@ -84,7 +89,7 @@
         });
 
         // Highlight active thread
-        const activeThreadId = localStorage.getItem('activeThreadId');
+        const activeThreadId = sessionStorage.getItem('activeThreadId');
         if (activeThreadId) {
             const activeThread = document.querySelector(`[onclick="switchThread('${activeThreadId}')"]`);
             if (activeThread) {
