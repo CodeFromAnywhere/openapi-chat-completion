@@ -142,7 +142,10 @@ export const GET = async (request: Request) => {
     );
     return new Response(html, {
       status: 200,
-      headers: { "Content-Type": "text/html" },
+      headers: {
+        "Content-Type": "text/html",
+        "Cache-Control": "max-age=3600, s-maxage=3600",
+      },
     });
   }
 
