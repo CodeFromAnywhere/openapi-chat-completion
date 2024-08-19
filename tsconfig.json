@@ -1,5 +1,5 @@
 {
-  "include": ["api", "public"],
+  "include": ["main.ts", "api", "public"],
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ES2022", "DOM"],

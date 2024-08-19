@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "description": "Usage statistics for the completion request.",
+  "properties": {
+    "completion_tokens": {
+      "type": "integer",
+      "description": "Number of tokens in the generated completion."
+    },
+    "prompt_tokens": {
+      "type": "integer",
+      "description": "Number of tokens in the prompt."
+    },
+    "total_tokens": {
+      "type": "integer",
+      "description": "Total number of tokens used in the request (prompt + completion)."
+    }
+  },
+  "additionalProperties": false,
+  "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
+}

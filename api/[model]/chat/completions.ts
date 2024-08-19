@@ -11,7 +11,8 @@ import {
   ChatCompletionInput,
   ChatCompletionOutput,
   FullToolCallDelta,
-} from "./types";
+} from "../../types.js";
+import { chatCompletionProviders } from "./util.js";
 
 // can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
 //export const config = { runtime: "edge" };
@@ -122,46 +123,12 @@ const streamOpenAIResponse = async (
   return { accumulatedMessage, toolCalls };
 };
 
-const getPathUrl = (requestUrl: string) => {
-  // Should expose an OpenAPI
-  const requestUrlObject = new URL(requestUrl);
-  const pathUrl = requestUrlObject.href.slice(
-    requestUrlObject.origin.length + 1,
-  );
-  try {
-    const pathUrlObject = new URL(pathUrl);
-    pathUrlObject.searchParams.delete("path");
-    const pathUrlString = pathUrlObject.toString();
-    return pathUrlString;
-  } catch (e) {
-    return;
-  }
-};
-/**
- * Function that strips the path so it doesn't matter if the sdk requires the /chat/completions path or not */
-const withoutPathnameSuffix = (url: string | undefined, suffix: string) => {
-  if (!url) {
-    return;
-  }
-  const urlObject = new URL(url);
-
-  const pathname = urlObject.pathname.endsWith(suffix)
-    ? urlObject.pathname.slice(0, urlObject.pathname.length - suffix.length)
-    : urlObject.pathname;
-
-  const newUrl =
-    urlObject.origin + pathname + urlObject.search + urlObject.hash;
-  return newUrl;
-};
-
 /** Expose the OpenAPI at root, only changing the server and path so it's used right. */
 export const GET = async (request: Request) => {
-  const openapiUrl = withoutPathnameSuffix(
-    getPathUrl(request.url),
-    "/chat/completions",
-  );
+  const openapiUrl = new URL(request.url).searchParams.get("openapiUrl");
 
   const accept = request.headers.get("Accept");
+
   if (accept?.startsWith("text/html")) {
     const page = !openapiUrl ? "/explore.html" : "/chat.html";
     // default for browsers, ensuring we get html for browsers, openapi otherwise
@@ -184,7 +151,7 @@ export const GET = async (request: Request) => {
   }
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
-  if (!targetOpenapi) {
+  if (!targetOpenapi || !targetOpenapi.paths) {
     return new Response("OpenAPI not found", { status: 400 });
   }
 
@@ -366,11 +333,9 @@ export const POST = async (request: Request) => {
   const forcedOpenapiSecret = request.headers.get("X-OPENAPI-SECRET");
   // for now, must be forced through a header
   const access_token = forcedOpenapiSecret || undefined;
-
-  const openapiUrl = withoutPathnameSuffix(
-    getPathUrl(request.url),
-    "/chat/completions",
-  );
+  const url = new URL(request.url);
+  const openapiUrl = url.searchParams.get("openapiUrl");
+  const model = url.searchParams.get("model");
 
   console.log("entered", { access_token, openapiUrl });
 
@@ -400,26 +365,14 @@ export const POST = async (request: Request) => {
   }
 
   const body: ChatCompletionInput = await request.json();
-  console.log({ body });
   if (body.tools && body.tools.length > 0) {
     return new Response("Tools need to be supplied through the OpenAPI", {
       status: 400,
     });
   }
 
-  const [provider, ...chunks] = body.model.split("/");
-  const model = chunks.join("/");
-  console.log({ model });
-  const chatCompletionProviders = {
-    groq: {
-      baseUrl: "https://api.groq.com/openai/v1",
-      secret: process.env.GROQ_API_KEY,
-    },
-    openai: {
-      baseUrl: "https://api.openai.com/v1",
-      secret: process.env.OPENAI_API_KEY,
-    },
-  };
+  const [provider, ...chunks] = model!.split(".");
+  const finalModel = chunks.join(".");
 
   if (
     !(forcedLlmBasePath && forcedLlmSecret) &&
@@ -466,7 +419,7 @@ export const POST = async (request: Request) => {
     targetOpenapi,
     body,
     messages,
-    model,
+    model: finalModel,
     providerBasePath,
     tools,
     llmSecret,
@@ -482,7 +435,7 @@ export const POST = async (request: Request) => {
   if (stream) {
     return new Response(readableStream.stream, {
       headers: {
-        "Content-Type": "text/plain",
+        "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       },

@@ -25,7 +25,7 @@
 
         </div>
 
-        <div id="chat-container" class="w-full p-4 mb-4 h-[95vh] overflow-y-auto">
+        <div id="chat-container" class="w-full pt-16 p-4 mb-4 h-[95vh] overflow-y-auto">
             <!-- Chat messages will be dynamically added here -->
         </div>
 
@@ -42,14 +42,10 @@
     <script>
 
 
-        // Get the OpenAPI URL from the current path
-        const currentPath = window.location.pathname;
-        const openapiUrl = currentPath.endsWith('/chat/completions')
-            ? currentPath.slice(1, -1 * '/chat/completions'.length)
-            : currentPath.slice(1);  // Remove leading '/'
+        const urlParams = new URLSearchParams(window.location.search);
+        const openapiUrl = urlParams.get('openapiUrl');
 
         // Check if X-LLM options are set
-
         const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
 
 
@@ -99,14 +95,15 @@
             const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
             const modelString = localStorage.getItem('modelString') || '';
 
-            const response = await fetch(`${window.location.origin}/${openapiUrl}/chat/completions`, {
+            const model = modelString || "openai.gpt-4o-mini";
+
+            const response = await fetch(`${window.location.origin}/${model}/chat/completions?openapiUrl=${openapiUrl}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...xHeaders
                 },
                 body: JSON.stringify({
-                    model: modelString || "openai/gpt-4o",
                     messages: threads[activeThreadId].map(msg => ({ role: msg.role, content: msg.message })),
                     stream: true
                 })
