@@ -62,17 +62,10 @@
 
         // Function to navigate to an API
         function navigateToApi(openapiUrl, threadId) {
-            switchThread(threadId)
+            sessionStorage.setItem('activeThreadId', threadId);
             window.location.href = `/openai.gpt-4o-mini/chat/completions?openapiUrl=${openapiUrl}`;
         }
 
-        // Function to switch to a thread
-        function switchThread(threadId) {
-            sessionStorage.setItem('activeThreadId', threadId);
-            alert(`Switched to thread ${threadId}`);
-
-            // You might want to redirect to the chat page or update the UI here
-        }
 
         // Load and display recent APIs
         // const recentApis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
@@ -84,18 +77,11 @@
         // Load and display threads
         const threads = JSON.parse(localStorage.getItem('threads')) || {};
         const threadsContainer = document.getElementById('threads');
-        Object.entries(threads).forEach(([threadId, item]) => {
-            threadsContainer.innerHTML += createThreadCard(threadId, item);
+        Object.keys(threads).sort((a, b) => b - a).forEach((threadId) => {
+            threadsContainer.innerHTML += createThreadCard(threadId, threads[threadId]);
         });
 
-        // Highlight active thread
-        const activeThreadId = sessionStorage.getItem('activeThreadId');
-        if (activeThreadId) {
-            const activeThread = document.querySelector(`[onclick="switchThread('${activeThreadId}')"]`);
-            if (activeThread) {
-                activeThread.classList.add('ring-2', 'ring-blue-500');
-            }
-        }
+
     </script>
 </body>
 
