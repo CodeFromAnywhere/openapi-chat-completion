@@ -53,7 +53,7 @@
             sessionStorage.setItem('activeThreadId', activeThreadId);
         }
 
-        let threads = JSON.parse(localStorage.getItem('threads')) || {};
+        let threads = JSON.parse(localStorage.getItem('threads') || '{}')
 
 
         fetch(openapiUrl).then(res => res.json()).then(async json => {
@@ -77,6 +77,8 @@
                 console.log("Set threads to the messages", { text })
 
                 threads[activeThreadId] = { messages, openapiUrl }
+
+                localStorage.setItem('threads', JSON.stringify(threads));
 
 
             }
@@ -121,6 +123,7 @@
         async function sendMessage(message) {
             const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
 
+            threads = JSON.parse(localStorage.getItem('threads') || '{}')
 
             const model = localStorage.getItem('modelString') || "openai.gpt-4o-mini";
 
