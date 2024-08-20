@@ -152,11 +152,15 @@
             let buffer = '';
             let assistantReply = '';
             let intervalId = undefined;
+            let finish_reason = null;
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
-                    console.log('done')
+                    console.log('done', finish_reason);
+                    assistantReply += `[done:${finish_reason}]`;
+                    updateAssistantMessage(assistantReply);
+
                     break;
                 }
 
@@ -221,7 +225,8 @@
                                 //updateAssistantMessageLoading(false, tools)
                             }
 
-                            const finish_reason = parsed.choices[0].finish_reason
+                            finish_reason = parsed.choices[0].finish_reason;
+
                             if (finish_reason) {
                                 assistantReply += `[${finish_reason}]`;
                                 updateAssistantMessage(assistantReply);
