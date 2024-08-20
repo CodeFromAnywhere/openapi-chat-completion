@@ -1,3 +1,11 @@
+state: |
+  sessionStorage: activeThreadId
+
+  localStorage
+  - threads { [id]: { messages, openapiUrl } }
+  - x-headers
+  - recentOpenapis {title,description,openapiUrl}[]
+
 settings.html: Make a page where I can edit/remove all X-... headers
   Also on this page, i should be able to set the model string
   All stored in localStorage

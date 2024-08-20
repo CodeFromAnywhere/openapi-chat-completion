@@ -45,10 +45,36 @@
         const urlParams = new URLSearchParams(window.location.search);
         const openapiUrl = urlParams.get('openapiUrl');
 
-        fetch(openapiUrl).then(res => res.json()).then(json => {
+        // Load or create active thread
+        let activeThreadId = sessionStorage.getItem('activeThreadId');
+
+        if (!activeThreadId) {
+            activeThreadId = Date.now().toString();
+            sessionStorage.setItem('activeThreadId', activeThreadId);
+        }
+
+        let threads = JSON.parse(localStorage.getItem('threads')) || {};
+
+
+        fetch(openapiUrl).then(res => res.json()).then(async json => {
 
             const recentOpenapis = JSON.parse(localStorage.getItem('recentOpenapis')) || [];
             const existingIndex = recentOpenapis.findIndex(api => api.openapiUrl === openapiUrl);
+
+
+            let messages = []
+            if (json.paths?.["/system"]) {
+                const text = await fetch(json.servers[0].url + "/system").then(res => res.text())
+
+                console.log("Successfully overwritten system prompt", { text })
+                messages = [{ role: "system", content: text }];
+
+
+            }
+
+            if (!threads[activeThreadId]) {
+                threads[activeThreadId] = { messages, openapiUrl }
+            }
 
             const apiInfo = {
                 openapiUrl,
@@ -65,22 +91,12 @@
             localStorage.setItem('recentOpenapis', JSON.stringify(recentOpenapis));
 
 
-        }).catch(e => { })
+        }).catch(e => { });
+
         // Check if X-LLM options are set
         const xHeaders = JSON.parse(localStorage.getItem('x-headers')) || {};
 
-        // Load or create active thread
-        let activeThreadId = sessionStorage.getItem('activeThreadId');
 
-        if (!activeThreadId) {
-            activeThreadId = Date.now().toString();
-            sessionStorage.setItem('activeThreadId', activeThreadId);
-        }
-
-        let threads = JSON.parse(localStorage.getItem('threads')) || {};
-        if (!threads[activeThreadId]) {
-            threads[activeThreadId] = { messages: [], openapiUrl }
-        }
 
         // Updated function to add a message to the chat
         function addMessageToChat(role, content) {

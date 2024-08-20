@@ -1,6 +1,6 @@
 # OpenAPI Chat Completion
 
-Turns every OpenAPI into a /chat/completions endpoint, that in itself is exposed as OpenAPI as well.
+Turns every OpenAPI into a `/chat/completions` endpoint, that in itself is exposed as OpenAPI as well.
 
 This is the successor of [Agent-Openapi](https://github.com/CodeFromAnywhere/agent-openapi). The biggest difference is it's fully stateless!!
 
@@ -56,15 +56,11 @@ Every thread should keep track of the last openapi it was at, so we can come bac
 
 Explore:
 
-- 🟠 button 'new' on top --> **must open clean slate**
-- recent conversations are at the top
-- render openapi info
-- the last openapi is the most prevalent one.
+- ✅ button 'new' on top --> **must open clean slate**
+- ✅ recent conversations are at the top
+- ✅ render openapi info
+- ✅ the last openapi is the most prevalent one.
 - search through openapis
-
-# Auth
-
-Obviously i want to immediately login when navigating to another openapi. How exactly this should be done IDK yet but most likely links to login in redirect with custom redirecturls
 
 # Dynamic OpenAPI
 
@@ -72,15 +68,9 @@ Obviously i want to immediately login when navigating to another openapi. How ex
 
 The url determines the openapi, the openapi determines the tools and authorization. I have already added operationIds, but another very interesting thing would be to embed actionschema search into big openapis, so we only show the most relevant tool(s) based on the messages.
 
-# Better
-
-- Aggregate to JSON (`streamToJsonResponse`)
-- Add user ratelimit of 60 messages per hour
-- Allow edge
-
 # Decisions/questions
 
-- Can i make this embeddable using a little circle turning into a sidebar? That would be a very nice add-on
+- Can I make this embeddable using a little circle turning into a sidebar? That would be a very nice add-on
 - Do access token check on frontend as well as on backend? Can be useful UX wise.
 - Shall I allow for additional tools (that aren't executed, but live alongside it)? For now, respond with 'tools need to be supplied over OpenAPI'.
 - Allowed additional header for LLM basePath + secret

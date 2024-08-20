@@ -25,17 +25,7 @@
 
         // Function to create a new thread
         async function createNewThread() {
-
-            const threads = JSON.parse(localStorage.getItem('threads') || '{}')
-
             const newThreadId = Date.now().toString();
-            const openapiUrl = localStorage.getItem('recentOpenapis')?.[0]?.openapiUrl || `https://search.actionschema.com/openapi.json`;
-
-            threads[newThreadId] = { messages: [], openapiUrl }
-
-            localStorage.setItem('threads', JSON.stringify(threads));
-
-
             navigateToApi(openapiUrl, newThreadId)
         }
 
