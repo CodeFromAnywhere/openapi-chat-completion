@@ -173,12 +173,21 @@
                             }
                             const tool_calls = parsed.choices[0].delta.tool_calls;
 
-                            if (tool_calls) {
-                                updateAssistantMessageLoading(true, tool_calls)
+                            if (tool_calls && tool_calls[0].name) {
+                                assistantReply += `\n\n⚡️ Using a tool: ${tool_calls[0].name}\n\n`;
+                                updateAssistantMessage(assistantReply);
+
+                                //updateAssistantMessageLoading(true, tool_calls)
                             }
+
                             const tools = parsed.choices[0].delta.tools;
+
                             if (tools) {
-                                updateAssistantMessageLoading(false, tools)
+                                assistantReply += `\n\n✅ Done. Check console for the response.\n\n`;
+                                console.log(tools)
+                                updateAssistantMessage(assistantReply);
+
+                                //updateAssistantMessageLoading(false, tools)
                             }
 
                         } catch (e) {
@@ -227,13 +236,12 @@
 
         // Showing some nice loading indication
         function updateAssistantMessageLoading(loading, data) {
-            console.log("LOADING INDEED", loading, data)
+
             const chatContainer = document.getElementById('chat-container');
             let assistantMessageLoading = chatContainer.querySelector('.current-message-loading');
 
             if (loading === false) {
                 //remove again
-
                 assistantMessageLoading.remove();
                 return;
             }
@@ -241,14 +249,14 @@
             if (!assistantMessageLoading) {
                 assistantMessageLoading = document.createElement('div');
                 assistantMessageLoading.className = 'mb-2 text-left current-message-loading';
-                assistantMessageLoading.textContent = `🕵️‍♂️ ${JSON.stringify(data)}`
+                assistantMessageLoading.textContent = `⚡️ ${data[0].name}...`
                 chatContainer.appendChild(assistantMessageLoading);
             }
 
 
             const messageContent = chatContainer.querySelector('.message-content-loading');
             if (messageContent) {
-                messageContent.textContent = `🕵️‍♂️`
+                messageContent.textContent = `⚡️`
             }
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
