@@ -64,7 +64,7 @@
 
             let messages = []
 
-            if (json.paths?.["/system"]) {
+            if (json.paths?.["/system.md"]) {
                 const text = await fetch(json.servers[0].url + "/system").then(res => res.text())
 
                 console.log("Successfully overwritten system prompt", { text })
@@ -77,6 +77,8 @@
                 console.log("Set threads to the messages", { text })
 
                 threads[activeThreadId] = { messages, openapiUrl }
+
+
             }
 
             const apiInfo = {
