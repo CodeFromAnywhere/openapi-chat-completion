@@ -151,6 +151,7 @@
             const decoder = new TextDecoder();
             let buffer = '';
             let assistantReply = '';
+            let intervalId = undefined;
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -173,9 +174,25 @@
                             }
                             const tool_calls = parsed.choices[0].delta.tool_calls;
 
+                            let n = 0;
+                            const loadingIndicators = ['🟥', '🟧', '🟨'];
+                            const doneEmoji = '🟩'
+
                             if (tool_calls && tool_calls[0].function?.name) {
-                                assistantReply += `\n\n⚡️ Using a tool: ${tool_calls[0].function.name}\n\n`;
+                                assistantReply += `\n\n⚡️ Using ${tool_calls[0].function.name}\n`;
                                 updateAssistantMessage(assistantReply);
+
+                                intervalId = setInterval(() => {
+
+                                    n++;
+
+                                    const emoji = n < 4 ? loadingIndicators[0] : n < 8 ? loadingIndicators[1] : loadingIndicators[2]
+
+                                    assistantReply += emoji;
+
+                                    updateAssistantMessage(assistantReply);
+
+                                }, 500)
 
                                 //updateAssistantMessageLoading(true, tool_calls)
                             }
@@ -183,10 +200,12 @@
                             const tools = parsed.choices[0].delta.tools;
 
                             if (tools) {
-                                assistantReply += `\n\n✅ Done. Check console for the response.\n\n`;
+                                assistantReply += `${doneEmoji} \n\n\n`;
                                 console.log(tools)
                                 updateAssistantMessage(assistantReply);
-
+                                if (intervalId) {
+                                    clearInterval(intervalId)
+                                }
                                 //updateAssistantMessageLoading(false, tools)
                             }
 
