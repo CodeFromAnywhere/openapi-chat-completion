@@ -200,8 +200,8 @@
                             const tools = parsed.choices[0].delta.tools;
 
                             if (tools) {
-                                assistantReply += `${doneEmoji} (response size: ${JSON.stringify(tools).split(" ").length} tokens)\n\n\n`;
-                                console.log(tools)
+                                assistantReply += `${doneEmoji} (response size: ${JSON.stringify(tools).length} characters)\n\n\n`;
+                                console.log(tools);
                                 updateAssistantMessage(assistantReply);
                                 if (intervalId) {
                                     clearInterval(intervalId)
