@@ -192,7 +192,7 @@
 
                                     updateAssistantMessage(assistantReply);
 
-                                }, 500)
+                                }, 500);
 
                                 //updateAssistantMessageLoading(true, tool_calls)
                             }
@@ -200,12 +200,15 @@
                             const tools = parsed.choices[0].delta.tools;
 
                             if (tools) {
-                                assistantReply += `${doneEmoji} (response size: ${JSON.stringify(tools).length} characters)\n\n\n`;
-                                console.log(tools);
-                                updateAssistantMessage(assistantReply);
                                 if (intervalId) {
                                     clearInterval(intervalId)
                                 }
+
+                                console.log('tool response length', JSON.stringify(tools).length);
+
+                                assistantReply += `${doneEmoji} (response size: ${JSON.stringify(tools).length} characters)\n\n\n`;
+                                console.log(tools);
+                                updateAssistantMessage(assistantReply);
                                 //updateAssistantMessageLoading(false, tools)
                             }
 
