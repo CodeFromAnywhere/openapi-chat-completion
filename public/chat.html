@@ -173,8 +173,8 @@
                             }
                             const tool_calls = parsed.choices[0].delta.tool_calls;
 
-                            if (tool_calls && tool_calls[0].name) {
-                                assistantReply += `\n\n⚡️ Using a tool: ${tool_calls[0].name}\n\n`;
+                            if (tool_calls && tool_calls[0].function?.name) {
+                                assistantReply += `\n\n⚡️ Using a tool: ${tool_calls[0].function.name}\n\n`;
                                 updateAssistantMessage(assistantReply);
 
                                 //updateAssistantMessageLoading(true, tool_calls)
