@@ -25,7 +25,12 @@
 
         // Function to create a new thread
         async function createNewThread() {
+
+
             const newThreadId = Date.now().toString();
+            const openapiUrl = `https://search.actionschema.com/agent.json`;
+
+
             navigateToApi(openapiUrl, newThreadId)
         }
 
