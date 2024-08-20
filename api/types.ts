@@ -21,13 +21,19 @@ export interface ChatCompletionChunk {
     index: number;
     delta: {
       role: string;
-      content: string | null;
+      content?: string | null;
       /** Important: openai has this type where arguments come later and must be augmented in order. Groq does just have the first one. Badly documented! */
-      tool_calls: (FullToolCallDelta | PartialToolCallDelta)[];
+      tool_calls?: (FullToolCallDelta | PartialToolCallDelta)[];
+
+      /** Our own addition */
+      tools?: any[];
     };
     logprobs: null;
     finish_reason: null;
   }[];
+  //extra info from different parties
+  x_groq?: any;
+  x_actionschema?: any;
 }
 
 export type ChatCompletionInput = {

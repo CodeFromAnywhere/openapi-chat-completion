@@ -17,6 +17,26 @@ import { chatCompletionProviders } from "./util.js";
 // can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
 //export const config = { runtime: "edge" };
 
+const createDeltaString = (model: string, message: string) => {
+  const delta: ChatCompletionChunk = {
+    id: "",
+    created: Date.now(),
+    model,
+    object: "chat-completion-chunk",
+    system_fingerprint: "",
+    choices: [
+      {
+        index: 0,
+        finish_reason: null,
+        logprobs: null,
+        delta: { role: "assistant", content: message, tool_calls: [] },
+      },
+    ],
+  };
+
+  // Must be a single line. Maybe sometimes it's not done?
+  return "\n\ndata: " + JSON.stringify(delta);
+};
 type StreamContext = {
   access_token?: string;
   openapiUrl: string;
@@ -38,7 +58,9 @@ const streamOpenAIResponse = async (
   if (!llmSecret) {
     const error = "OpenAI API key not configured";
     console.error(error);
-    controller.enqueue(new TextEncoder().encode(error));
+    controller.enqueue(
+      new TextEncoder().encode(createDeltaString(model, error)),
+    );
     controller.close();
     return;
   }
@@ -64,7 +86,9 @@ const streamOpenAIResponse = async (
 
     const error = `\n\nLLM API error (${llmResponse.status} - ${llmResponse.statusText}) ${errorText}`;
     console.error(error);
-    controller.enqueue(new TextEncoder().encode(error));
+    controller.enqueue(
+      new TextEncoder().encode(createDeltaString(model, error)),
+    );
     controller.close();
     return;
   }
@@ -73,7 +97,9 @@ const streamOpenAIResponse = async (
   if (!reader) {
     const error = `\n\nCouldn't get reader`;
     console.error(error);
-    controller.enqueue(new TextEncoder().encode(error));
+    controller.enqueue(
+      new TextEncoder().encode(createDeltaString(model, error)),
+    );
 
     controller.close();
     return;
@@ -88,6 +114,7 @@ const streamOpenAIResponse = async (
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
+      console.log("done");
       break;
     }
 
@@ -115,6 +142,12 @@ const streamOpenAIResponse = async (
           }
         } catch (error) {
           console.error("Error parsing JSON:", error);
+
+          controller.enqueue(
+            new TextEncoder().encode(
+              createDeltaString(model, "Error parsing data JSON"),
+            ),
+          );
         }
       }
     }
@@ -208,6 +241,7 @@ const getStream = async (
         const { accumulatedMessage, toolCalls } = result;
 
         if (toolCalls.length === 0) {
+          // if there are no tool calls, we can safely break out, everything has been said.
           break;
         }
 
@@ -231,7 +265,7 @@ const getStream = async (
             };
           });
 
-        console.log({ uniqueToolcalls });
+        console.dir({ uniqueToolcalls }, { depth: 99 });
 
         // add assistant messages to final response
         const message: ChatCompletionInput["messages"][number] = {
@@ -265,30 +299,28 @@ const getStream = async (
           .filter((x) => !!x)
           .map((x) => x!);
 
-        console.log({ toolMessages });
+        console.dir({ toolMessages }, { depth: 99 });
 
+        const delta: ChatCompletionChunk = {
+          id: "chatcmpl-SOMETHING",
+          object: "chat.completion.chunk",
+          created: Math.round(Date.now() / 1000),
+          model,
+          system_fingerprint: "",
+          choices: [
+            {
+              index: 0,
+              delta: { role: "user", tools: toolMessages },
+              logprobs: null,
+              finish_reason: null,
+            },
+          ],
+          x_actionschema: {
+            //custom data
+          },
+        };
         controller.enqueue(
-          new TextEncoder().encode(
-            "\n\ndata: " +
-              JSON.stringify({
-                id: "chatcmpl-SOMETHING",
-                object: "chat.completion.chunk",
-                created: Math.round(Date.now() / 1000),
-                model,
-                system_fingerprint: null,
-                choices: [
-                  {
-                    index: 0,
-                    delta: { role: "user", tools: toolMessages },
-                    logprobs: null,
-                    finish_reason: null,
-                  },
-                ],
-                x_actionschema: {
-                  //custom data
-                },
-              }),
-          ),
+          new TextEncoder().encode("\n\ndata: " + JSON.stringify(delta)),
         );
 
         // done for the next round
