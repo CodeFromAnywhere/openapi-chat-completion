@@ -266,7 +266,7 @@
 
 
         // Load existing messages for the active thread
-        (threads[activeThreadId].messages || []).forEach(msg => {
+        ((threads[activeThreadId] || {}).messages || []).forEach(msg => {
             addMessageToChat(msg.role, msg.message);
         });
     </script>
