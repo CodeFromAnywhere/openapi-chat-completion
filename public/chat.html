@@ -73,13 +73,12 @@
 
             }
 
-            if (!threads[activeThreadId]) {
+            if (!threads[activeThreadId] || threads[activeThreadId].messages.length === 0) {
                 console.log("Set threads to the messages", { text })
 
                 threads[activeThreadId] = { messages, openapiUrl }
 
                 localStorage.setItem('threads', JSON.stringify(threads));
-
 
             }
 
@@ -173,11 +172,11 @@
                             const tool_calls = parsed.choices[0].delta.tool_calls;
 
                             if (tool_calls) {
-                                updateAssistantMessageLoading(true)
+                                updateAssistantMessageLoading(true, tool_calls)
                             }
                             const tools = parsed.choices[0].delta.tools;
                             if (tools) {
-                                updateAssistantMessageLoading(false)
+                                updateAssistantMessageLoading(false, tools)
                             }
 
                         } catch (e) {
@@ -225,13 +224,14 @@
 
 
         // Showing some nice loading indication
-        function updateAssistantMessageLoading(loading) {
-            console.log("LOADING INDEED", loading)
+        function updateAssistantMessageLoading(loading, data) {
+            console.log("LOADING INDEED", loading, data)
             const chatContainer = document.getElementById('chat-container');
             let assistantMessageLoading = chatContainer.querySelector('.current-message-loading');
 
             if (loading === false) {
                 //remove again
+
                 assistantMessageLoading.remove();
                 return;
             }
@@ -239,7 +239,7 @@
             if (!assistantMessageLoading) {
                 assistantMessageLoading = document.createElement('div');
                 assistantMessageLoading.className = 'mb-2 text-left current-message-loading';
-                assistantMessageLoading.textContent = `🕵️‍♂️`
+                assistantMessageLoading.textContent = `🕵️‍♂️ ${JSON.stringify(data)}`
                 chatContainer.appendChild(assistantMessageLoading);
             }
 
@@ -253,13 +253,21 @@
 
         // Event listener for send button
         document.getElementById('send-button').addEventListener('click', () => {
+
+            //update threads
+            threads = JSON.parse(localStorage.getItem('threads') || '{}')
+
             const userInput = document.getElementById('user-input');
             const message = userInput.value.trim();
+
             if (message) {
                 addMessageToChat('user', message);
-                threads[activeThreadId].messages.push({ role: 'user', message: message });
+
+                ((threads[activeThreadId] || {}).messages || []).push({ role: 'user', message: message });
                 localStorage.setItem('threads', JSON.stringify(threads));
+
                 userInput.value = '';
+
                 sendMessage(message);
             }
         });
