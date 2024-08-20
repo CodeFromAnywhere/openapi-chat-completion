@@ -73,10 +73,10 @@
 
             }
 
-            console.log("WTF", threads)
+            console.log("WTF", threads, { active: threads[activeThreadId] }, !threads[activeThreadId])
 
             if (!threads[activeThreadId] || threads[activeThreadId].messages.length === 0) {
-                console.log("Set threads to the messages", { text })
+                console.log("Set threads to the messages", { messages })
 
                 threads[activeThreadId] = { messages, openapiUrl }
 
