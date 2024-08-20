@@ -13,10 +13,17 @@ export type PartialToolCallDelta = {
 
 export interface ChatCompletionChunk {
   id: string;
-  object: string;
+  object: "chat.completion.chunk";
   created: number;
   model: string;
   system_fingerprint: string;
+  service_tier?: string | null;
+  /** only given if setting stream_options: {"include_usage": true} in request, only given in last stream chunk */
+  usage?: null | {
+    completion_tokens: number;
+    prompt_tokens: number;
+    total_tokens: number;
+  };
   choices: {
     index: number;
     delta:
@@ -85,6 +92,7 @@ export type ChatCompletionInput = {
   seed?: number;
   stop?: string | string[];
   stream?: boolean;
+  stream_options?: { include_usage?: boolean };
   temperature?: number;
   top_p?: number;
   tools?: Array<{

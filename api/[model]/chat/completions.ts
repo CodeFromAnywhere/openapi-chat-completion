@@ -22,7 +22,7 @@ const createDeltaString = (model: string, message: string) => {
     id: "",
     created: Math.round(Date.now() / 1000),
     model,
-    object: "chat-completion-chunk",
+    object: "chat.completion.chunk",
     system_fingerprint: "",
     choices: [
       {
@@ -350,28 +350,6 @@ const getStream = async (
   return { stream, status: 200 };
 };
 
-async function streamToJsonResponse(stream: ReadableStream<any>) {
-  const reader = stream.getReader();
-  let result = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    // Here there should be some magic! We need to read in all chunks and turn it into a ChatCompletionOutput
-    result += new TextDecoder().decode(value);
-  }
-
-  // Assuming the result is valid JSON string
-  const jsonData: ChatCompletionOutput = JSON.parse('{ "ok": true }');
-
-  return new Response(JSON.stringify(jsonData), {
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-  });
-}
-
 export const POST = async (request: Request) => {
   const forcedLlmBasePath = request.headers.get("X-LLM-BASEPATH");
   const forcedLlmSecret = request.headers.get("X-LLM-SECRET");
@@ -382,7 +360,7 @@ export const POST = async (request: Request) => {
   const openapiUrl = url.searchParams.get("openapiUrl");
   const model = url.searchParams.get("model");
 
-  console.log("entered", { access_token, openapiUrl });
+  //console.log("entered", { access_token, openapiUrl });
 
   if (!openapiUrl) {
     return new Response("Please put an openapiUrl in your pathname", {
@@ -391,7 +369,7 @@ export const POST = async (request: Request) => {
   }
 
   // TODO: Get this from thing
-  const operationIds: string[] | undefined = undefined; //[];
+  const operationIds: string[] | undefined = undefined;
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
   if (!targetOpenapi || !targetOpenapi.paths) {
@@ -488,6 +466,82 @@ export const POST = async (request: Request) => {
   }
 
   //rather than streaming, stream it inhere myself and accumulate the result into a single JSON
-  const response = await streamToJsonResponse(readableStream.stream);
-  return response;
+  const response = await streamToJsonResponse2(readableStream.stream);
+  return new Response(JSON.stringify(response), { status: 200 });
 };
+
+// New function to convert stream to JSON response
+async function streamToJsonResponse2(stream: ReadableStream): Promise<any> {
+  const reader = stream.getReader();
+  let accumulatedResponse = "";
+  let jsonResponse = {};
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    // Decode the chunk and add it to the accumulated response
+    accumulatedResponse += new TextDecoder().decode(value);
+
+    // Split the accumulated response by lines
+    const lines = accumulatedResponse.split("\n");
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        const jsonString = line.slice(6); // Remove 'data: ' prefix
+        if (jsonString.trim() === "[DONE]") continue;
+
+        try {
+          const parsedJson = JSON.parse(jsonString);
+          // Merge the parsed JSON into the response
+          jsonResponse = { ...jsonResponse, ...parsedJson };
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      }
+    }
+
+    // Keep any incomplete data for the next iteration
+    accumulatedResponse = lines[lines.length - 1];
+  }
+
+  return jsonResponse;
+}
+
+//doesn't work yet!
+async function streamToJsonResponse(stream: ReadableStream<any>) {
+  const reader = stream.getReader();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader!.read();
+    if (done) break;
+
+    const chunks = new TextDecoder().decode(value).split("\n");
+    for (const chunk of chunks) {
+      if (chunk.trim() === "") continue;
+
+      try {
+        const parsedChunk: ChatCompletionChunk = JSON.parse(
+          chunk.replace(/^data: /, ""),
+        );
+        const content = parsedChunk.choices[0]?.delta?.content;
+
+        console.log({ chunk, parsedChunk });
+        // NB: Only content for now
+        if (content !== undefined && content !== null) {
+          result += content;
+        }
+      } catch (error) {
+        console.error("Error parsing chunk:", error);
+      }
+    }
+  }
+
+  return new Response(result, {
+    headers: {
+      //   "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+    },
+  });
+}

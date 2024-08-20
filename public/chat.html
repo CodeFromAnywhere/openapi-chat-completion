@@ -155,7 +155,10 @@
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    console.log('done')
+                    break;
+                }
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
@@ -218,6 +221,11 @@
                                 //updateAssistantMessageLoading(false, tools)
                             }
 
+                            const finish_reason = parsed.choices[0].finish_reason
+                            if (finish_reason) {
+                                assistantReply += `[${finish_reason}]`;
+                                updateAssistantMessage(assistantReply);
+                            }
                         } catch (e) {
                             console.error('Error parsing SSE:', e);
                         }
