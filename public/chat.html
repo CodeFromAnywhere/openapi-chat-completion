@@ -63,6 +63,7 @@
 
 
             let messages = []
+
             if (json.paths?.["/system"]) {
                 const text = await fetch(json.servers[0].url + "/system").then(res => res.text())
 
@@ -73,6 +74,8 @@
             }
 
             if (!threads[activeThreadId]) {
+                console.log("Set threads to the messages", { text })
+
                 threads[activeThreadId] = { messages, openapiUrl }
             }
 
