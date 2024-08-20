@@ -19,15 +19,22 @@ export interface ChatCompletionChunk {
   system_fingerprint: string;
   choices: {
     index: number;
-    delta: {
-      role: string;
-      content?: string | null;
-      /** Important: openai has this type where arguments come later and must be augmented in order. Groq does just have the first one. Badly documented! */
-      tool_calls?: (FullToolCallDelta | PartialToolCallDelta)[];
+    delta:
+      | {
+          role: string;
+          content?: string | null;
+          /** Important: openai has this type where arguments come later and must be augmented in order. Groq does just have the first one. Badly documented! */
+          tool_calls?: (FullToolCallDelta | PartialToolCallDelta)[];
 
-      /** Our own addition */
-      tools?: any[];
-    };
+          /** Our own addition */
+          tools?: any[];
+        }
+      | {
+          role: undefined;
+          content: undefined;
+          tool_calls: undefined;
+          tools: undefined;
+        };
     logprobs: null;
     finish_reason: null;
   }[];

@@ -20,7 +20,7 @@ import { chatCompletionProviders } from "./util.js";
 const createDeltaString = (model: string, message: string) => {
   const delta: ChatCompletionChunk = {
     id: "",
-    created: Date.now(),
+    created: Math.round(Date.now() / 1000),
     model,
     object: "chat-completion-chunk",
     system_fingerprint: "",
@@ -29,7 +29,7 @@ const createDeltaString = (model: string, message: string) => {
         index: 0,
         finish_reason: null,
         logprobs: null,
-        delta: { role: "assistant", content: message, tool_calls: [] },
+        delta: { role: "assistant", content: message },
       },
     ],
   };
@@ -114,7 +114,13 @@ const streamOpenAIResponse = async (
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      console.log("done");
+      console.log("done", value);
+      // controller.enqueue(
+      //   new TextEncoder().encode(
+      //     createDeltaString(model, "\n\nreader says done\n\n"),
+      //   ),
+      // );
+
       break;
     }
 
@@ -131,14 +137,18 @@ const streamOpenAIResponse = async (
       if (line.startsWith("data: ")) {
         try {
           const data: ChatCompletionChunk = JSON.parse(line.slice(6));
-          const delta = data.choices[0]?.delta;
+
+          const delta = data?.choices[0]?.delta;
+
           // directly pass through the encoding on per-line basis, everything except [DONE]
           controller.enqueue(new TextEncoder().encode("\n\n" + line));
 
           if (delta?.tool_calls) {
             toolCalls = toolCalls.concat(delta.tool_calls);
-          } else if (delta?.content) {
+          } else if (delta?.content !== undefined) {
             accumulatedMessage += delta.content;
+          } else {
+            console.dir(data, { depth: 99 });
           }
         } catch (error) {
           console.error("Error parsing JSON:", error);
