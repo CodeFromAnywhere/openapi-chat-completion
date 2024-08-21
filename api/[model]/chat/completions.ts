@@ -69,7 +69,7 @@ const streamOpenAIResponse = async (
     ...context.body,
     messages: messages,
     model,
-    tools,
+    tools: tools.length === 0 ? undefined : tools,
   };
 
   const llmResponse = await fetch(`${providerBasePath}/chat/completions`, {
@@ -169,7 +169,7 @@ const streamOpenAIResponse = async (
 /** Expose the OpenAPI at root, only changing the server and path so it's used right. */
 export const GET = async (request: Request) => {
   const openapiUrl = new URL(request.url).searchParams.get("openapiUrl");
-
+  console.log(openapiUrl);
   const accept = request.headers.get("Accept");
 
   if (accept?.startsWith("text/html")) {
@@ -358,9 +358,10 @@ export const POST = async (request: Request) => {
   const access_token = forcedOpenapiSecret || undefined;
   const url = new URL(request.url);
   const openapiUrl = url.searchParams.get("openapiUrl");
+
   const model = url.searchParams.get("model");
 
-  //console.log("entered", { access_token, openapiUrl });
+  console.log("entered", { access_token, openapiUrl });
 
   if (!openapiUrl) {
     return new Response("Please put an openapiUrl in your pathname", {
@@ -368,22 +369,44 @@ export const POST = async (request: Request) => {
     });
   }
 
-  // TODO: Get this from thing
-  const operationIds: string[] | undefined = undefined;
+  // // TODO: Get this from thing
+  // const operationIds: string[] | undefined = [];
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
+
   if (!targetOpenapi || !targetOpenapi.paths) {
     return new Response("OpenAPI not found", { status: 400 });
   }
 
-  const semanticOpenapi = getSemanticOpenapi(
-    targetOpenapi,
-    openapiUrl,
-    operationIds,
-  );
+  const semanticOpenapiFetchUrl = `https://openapi-util.actionschema.com/getSemanticOpenapi?openapiUrl=${encodeURIComponent(openapiUrl)}`;
 
+  const semanticOpenapi = await fetch(semanticOpenapiFetchUrl, {
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        console.log(res.status, await res.text(), res.statusText);
+      }
+      const json = await res.json();
+      return json;
+    })
+    .catch((e) => {
+      console.log(
+        "Couldn't parse semantic openapi",
+        { semanticOpenapiFetchUrl },
+        e,
+      );
+    });
+
+  // const semanticOpenapi = getSemanticOpenapi(
+  //   targetOpenapi,
+  //   openapiUrl,
+  //   operationIds,
+  // );
+
+  console.dir({ semanticOpenapi }, { depth: 6 });
   if (!semanticOpenapi) {
-    console.log({ targetOpenapi, openapiUrl });
+    console.log("SEMANTIC NOT FOUND", { openapiUrl });
     return new Response("SemanticOpenAPI not found", { status: 400 });
   }
 
@@ -432,6 +455,7 @@ export const POST = async (request: Request) => {
     };
   });
 
+  console.log(`tools:`, tools.length);
   // copy to keep body.messages original
   let messages = [...body.messages];
   const stream = body.stream;

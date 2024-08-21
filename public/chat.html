@@ -44,7 +44,6 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const openapiUrl = urlParams.get('openapiUrl');
-
         // Load or create active thread
         let activeThreadId = sessionStorage.getItem('activeThreadId');
 
@@ -128,7 +127,7 @@
 
             const model = localStorage.getItem('modelString') || "openai.gpt-4o-mini";
 
-            const response = await fetch(`${window.location.origin}/${model}/chat/completions?openapiUrl=${openapiUrl}`, {
+            const response = await fetch(`${window.location.origin}/${model}/chat/completions?openapiUrl=${encodeURIComponent(openapiUrl)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -158,8 +157,8 @@
                 const { done, value } = await reader.read();
                 if (done) {
                     console.log('done', finish_reason);
-                    assistantReply += `[done:${finish_reason}]`;
-                    updateAssistantMessage(assistantReply);
+                    //assistantReply += `[done:${finish_reason}]`;
+                    // updateAssistantMessage(assistantReply);
 
                     break;
                 }
@@ -228,8 +227,8 @@
                             finish_reason = parsed.choices[0].finish_reason;
 
                             if (finish_reason) {
-                                assistantReply += `[${finish_reason}]`;
-                                updateAssistantMessage(assistantReply);
+                                //  assistantReply += `[${finish_reason}]`;
+                                //   updateAssistantMessage(assistantReply);
                             }
                         } catch (e) {
                             console.error('Error parsing SSE:', e);
