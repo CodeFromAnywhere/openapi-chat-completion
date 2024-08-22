@@ -19,27 +19,36 @@ const middleware = async (request: Request) => {
     return;
   }
 
-  console.log("HIT MIDDLEWARE");
-
   const Authorization = request.headers.get("Authorization");
+  const userId = request.headers.get("X-USER-ID");
   const ip = ipAddress(request) || "127.0.0.1";
   const isFreePlan = true;
-  const isAuthorized = false;
-  // TODO: Use auth to validate authorization first
-  const ratelimitUserId = isAuthorized ? ip : ip;
+  const isAdmin =
+    !!process.env.ADMIN_SECRET && Authorization === process.env.ADMIN_SECRET;
+
+  // TODO: Add oauth2 and allow for
+  const ratelimitUserId = isAdmin ? userId : ip;
 
   const redis = Redis.fromEnv();
 
-  const requestsLimit = isAuthorized ? 100 : 100;
+  const requestsLimit = 100;
+  const adminLimit = 10000;
+  const limitAmount = ratelimitUserId ? requestsLimit : adminLimit;
 
   const { limit } = new Ratelimit({
     redis,
     analytics: true,
     timeout: 10000,
-    limiter: Ratelimit.slidingWindow(requestsLimit, `6h`),
+    limiter: Ratelimit.slidingWindow(limitAmount, `6h`),
   });
 
-  const info = await limit(ratelimitUserId);
+  console.log("HIT RATELIMIT MIDDLEWARE", {
+    isAdmin,
+    limitAmount,
+    ratelimitUserId,
+  });
+
+  const info = await limit(ratelimitUserId || "admin");
 
   if (!info.success) {
     return new Response(
