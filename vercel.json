@@ -6,6 +6,15 @@
       "destination": "/api/:path*"
     }
   ],
+
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "src/**/*.ts"
+    }
+  },
+
   "headers": [
     {
       "source": "/:path*",
