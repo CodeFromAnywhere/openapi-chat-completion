@@ -516,7 +516,7 @@ async function streamToJsonResponse2(stream: ReadableStream): Promise<any> {
     if (done) break;
 
     // Decode the chunk and add it to the accumulated response
-    accumulatedResponse += new TextDecoder().decode(value);
+    accumulatedResponse += new TextDecoder().decode(value, { stream: true });
 
     // Split the accumulated response by lines
     const lines = accumulatedResponse.split("\n");
@@ -552,7 +552,9 @@ async function streamToJsonResponse(stream: ReadableStream<any>) {
     const { done, value } = await reader!.read();
     if (done) break;
 
-    const chunks = new TextDecoder().decode(value).split("\n");
+    const chunks = new TextDecoder()
+      .decode(value, { stream: true })
+      .split("\n");
     for (const chunk of chunks) {
       if (chunk.trim() === "") continue;
 

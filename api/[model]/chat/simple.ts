@@ -44,7 +44,9 @@ export const GET = async (request: Request) => {
         const { done, value } = await reader!.read();
         if (done) break;
 
-        const chunks = new TextDecoder().decode(value).split("\n");
+        const chunks = new TextDecoder()
+          .decode(value, { stream: true })
+          .split("\n");
         for (const chunk of chunks) {
           if (chunk.trim() === "") continue;
 
