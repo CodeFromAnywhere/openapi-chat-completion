@@ -3,7 +3,7 @@
   "openapi": "3.1.0",
   "x-actionschema": "0.0.1",
   "servers": [{ "url": "" }],
-  "security": [{ "oauth2": [] }],
+  "security": [{ "oauth2": [] }, {}],
   "info": {
     "title": "OpenAPI Chat Completion API",
     "version": "1.0.0"
@@ -150,6 +150,13 @@
             "name": "openapiUrl",
             "schema": { "type": "string" },
             "description": "The openapiUrl of the tools"
+          },
+          {
+            "in": "header",
+            "name": "X-USER-ID",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "For admin, put a userId for the amount of requests to be ratelimited."
           },
           {
             "in": "header",
@@ -649,7 +656,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Either a JSON or a text/event-stream incase you passed 'stream:true'",
             "content": {
               "application/json": {
                 "schema": {
@@ -869,6 +876,106 @@
                     }
                   },
                   "required": ["choices", "created", "id", "model", "object"]
+                }
+              },
+
+              "text/event-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "type": "string",
+                      "enum": ["chat.completion.chunk"]
+                    },
+                    "created": {
+                      "type": "number"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "system_fingerprint": {
+                      "type": "string"
+                    },
+                    "service_tier": {
+                      "type": "string"
+                    },
+                    "usage": {
+                      "type": "object",
+                      "required": [
+                        "completion_tokens",
+                        "prompt_tokens",
+                        "total_tokens"
+                      ],
+                      "properties": {
+                        "completion_tokens": {
+                          "type": "number"
+                        },
+                        "prompt_tokens": {
+                          "type": "number"
+                        },
+                        "total_tokens": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "choices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+
+                        "properties": {
+                          "index": {
+                            "type": "number"
+                          },
+                          "delta": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "role": {
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "type": "string"
+                                  },
+                                  "tool_calls": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object"
+                                    }
+                                  },
+                                  "tools": {
+                                    "type": "array"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "logprobs": {
+                            "type": "object"
+                          },
+                          "finish_reason": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "x_groq": {
+                      "type": "object"
+                    },
+                    "x_actionschema": {
+                      "type": "object"
+                    }
+                  }
                 }
               }
             }
