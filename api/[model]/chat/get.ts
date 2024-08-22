@@ -30,5 +30,20 @@ export const GET = async (request: Request) => {
     body: JSON.stringify(body),
   });
 
+  console.log(
+    "headers",
+    response.headers.get("Content-Type"),
+    response.headers.get("Cache-Control"),
+    response.headers.get("Connection"),
+  );
+
+  /*
+  should have:
+
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+*/
+
   return response;
 };
