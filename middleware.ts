@@ -10,7 +10,7 @@ export const config = {
   ],
 };
 
-export const middleware = async (request: Request) => {
+const middleware = async (request: Request) => {
   if (
     request.method === "GET" &&
     new URL(request.url).pathname.endsWith("/completions")
@@ -71,3 +71,4 @@ export const middleware = async (request: Request) => {
     );
   }
 };
+export default middleware;
