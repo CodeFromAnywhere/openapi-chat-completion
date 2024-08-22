@@ -38,39 +38,6 @@ export const GET = async (request: Request) => {
   const reader = response.body?.getReader();
   const encoder = new TextEncoder();
 
-  // const stream = new ReadableStream({
-  //   async start(controller) {
-  //     while (true) {
-  //       const { done, value } = await reader!.read();
-  //       if (done) break;
-
-  //       const chunks = new TextDecoder()
-  //         .decode(value, { stream: true })
-  //         .split("\n");
-  //       for (const chunk of chunks) {
-  //         if (chunk.trim() === "") continue;
-
-  //         try {
-  //           const parsedChunk: ChatCompletionChunk = JSON.parse(
-  //             chunk.replace(/^data: /, ""),
-  //           );
-  //           const content = parsedChunk.choices[0]?.delta?.content;
-
-  //           // NB: Only content for now. Maybe in the future, also add markdown sections showing tool use.
-
-  //           if (content !== undefined && content !== null) {
-  //             controller.enqueue(encoder.encode(content));
-  //           }
-  //         } catch (error) {
-  //           //  console.error("Error parsing chunk:");
-  //         }
-  //       }
-  //     }
-
-  //     controller.close();
-  //   },
-  // });
-
   const stream = new ReadableStream({
     async start(controller) {
       let buffer = "";
@@ -99,20 +66,6 @@ export const GET = async (request: Request) => {
           }
         }
       }
-      // Process any remaining data in the buffer
-      // if (buffer) {
-      //   try {
-      //     const parsedChunk: ChatCompletionChunk = JSON.parse(
-      //       buffer.replace(/^data: /, ""),
-      //     );
-      //     const content = parsedChunk.choices[0]?.delta?.content;
-      //     if (content !== undefined && content !== null) {
-      //       controller.enqueue(encoder.encode(content));
-      //     }
-      //   } catch (error) {
-      //     console.error("Error parsing final chunk:", error);
-      //   }
-      // }
       controller.close();
     },
   });
