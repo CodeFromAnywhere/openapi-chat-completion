@@ -18,6 +18,7 @@ export const GET = async (request: Request) => {
     messages: [{ role: "user", content: q }],
     model,
     stream: true,
+    stream_options: { include_usage: true },
   };
 
   // Forward the request to the chat completion endpoint
