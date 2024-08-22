@@ -9,12 +9,148 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/chat/completions": {
+    "/calculate-cost": {
+      "get": {
+        "summary": "Calculate cost of AI model usage",
+        "description": "Calculates the cost of using an AI model based on the provider, model, and token usage.",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["groq", "openai", "anthropic"]
+            },
+            "description": "The AI provider"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The specific model ID"
+          },
+          {
+            "name": "completion_tokens",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Number of tokens in the generated completion"
+          },
+          {
+            "name": "prompt_tokens",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Number of tokens in the prompt"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful cost calculation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "prompt_cost": {
+                      "type": "number",
+                      "description": "Cost of the prompt tokens"
+                    },
+                    "output_cost": {
+                      "type": "number",
+                      "description": "Cost of the completion tokens"
+                    },
+                    "total_cost": {
+                      "type": "number",
+                      "description": "Total cost of the operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/[model]/chat/completions": {
+      "get": {
+        "operationId": "getBaseOpenapi",
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "model",
+            "schema": { "type": "string" },
+            "description": "The provider and/or model separated by '.'"
+          },
+          {
+            "in": "query",
+            "required": false,
+            "name": "openapiUrl",
+            "schema": { "type": "string" },
+            "description": "The openapiUrl of the tools"
+          }
+        ],
+        "responses": {
+          "404": { "description": "Not found" },
+          "422": { "description": "Invalid params" },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://ref.actionschema.com/openapi.json"
+                }
+              }
+            }
+          }
+        }
+      },
+
       "post": {
         "operationId": "createChatCompletion",
         "tags": ["Chat"],
         "summary": "Creates a model response for the given chat conversation.",
         "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "model",
+            "schema": { "type": "string" },
+            "description": "The provider and/or model separated by '.'"
+          },
+          {
+            "in": "query",
+            "required": false,
+            "name": "openapiUrl",
+            "schema": { "type": "string" },
+            "description": "The openapiUrl of the tools"
+          },
           {
             "in": "header",
             "name": "X-LLM-BASEPATH",

@@ -9,7 +9,6 @@ import {
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
-  ChatCompletionOutput,
   FullToolCallDelta,
 } from "../../types.js";
 import { chatCompletionProviders } from "./util.js";
@@ -39,17 +38,17 @@ const createDeltaString = (model: string, message: string) => {
 };
 type StreamContext = {
   access_token?: string;
-  openapiUrl: string;
-  targetOpenapi: OpenapiDocument;
+  openapiUrl: string | null;
+  targetOpenapi?: OpenapiDocument;
   providerBasePath: string;
   llmSecret?: string;
   model: string;
-  tools: any[];
+  tools?: any[];
   body: any;
   messages: any[];
 };
 
-const streamOpenAIResponse = async (
+const streamLlmResponse = async (
   controller: ReadableStreamDefaultController<any>,
   context: StreamContext,
 ) => {
@@ -69,7 +68,7 @@ const streamOpenAIResponse = async (
     ...context.body,
     messages: messages,
     model,
-    tools: tools.length === 0 ? undefined : tools,
+    tools: !tools || tools.length === 0 ? undefined : tools,
   };
 
   const llmResponse = await fetch(`${providerBasePath}/chat/completions`, {
@@ -166,7 +165,9 @@ const streamOpenAIResponse = async (
   return { accumulatedMessage, toolCalls };
 };
 
-/** Expose the OpenAPI at root, only changing the server and path so it's used right. */
+/**
+ * Expose the OpenAPI at root, only changing the server and path so it's used right.
+ */
 export const GET = async (request: Request) => {
   const openapiUrl = new URL(request.url).searchParams.get("openapiUrl");
   console.log(openapiUrl);
@@ -193,12 +194,14 @@ export const GET = async (request: Request) => {
   }
 
   if (!openapiUrl) {
-    return new Response("Please put an openapiUrl in your pathname");
+    return new Response("Please put an openapiUrl in your pathname", {
+      status: 422,
+    });
   }
 
   const targetOpenapi = await fetchOpenapi(openapiUrl);
   if (!targetOpenapi || !targetOpenapi.paths) {
-    return new Response("OpenAPI not found", { status: 400 });
+    return new Response("OpenAPI not found", { status: 404 });
   }
 
   const originUrl = new URL(request.url).origin;
@@ -236,7 +239,7 @@ const getStream = async (
 
         loop++;
         // listen and pass through all messages
-        const result = await streamOpenAIResponse(controller, {
+        const result = await streamLlmResponse(controller, {
           ...context,
           messages,
         });
@@ -250,7 +253,7 @@ const getStream = async (
 
         const { accumulatedMessage, toolCalls } = result;
 
-        if (toolCalls.length === 0) {
+        if (!targetOpenapi || !openapiUrl || toolCalls.length === 0) {
           // if there are no tool calls, we can safely break out, everything has been said.
           break;
         }
@@ -363,52 +366,52 @@ export const POST = async (request: Request) => {
 
   console.log("entered", { access_token, openapiUrl });
 
-  if (!openapiUrl) {
-    return new Response("Please put an openapiUrl in your pathname", {
-      status: 400,
-    });
-  }
+  // if (!openapiUrl) {
+  //   return new Response("Please put an openapiUrl in your pathname", {
+  //     status: 400,
+  //   });
+  // }
 
   // // TODO: Get this from thing
-  // const operationIds: string[] | undefined = [];
+  const operationIds: string[] | undefined = undefined;
 
-  const targetOpenapi = await fetchOpenapi(openapiUrl);
+  const targetOpenapi = openapiUrl ? await fetchOpenapi(openapiUrl) : undefined;
 
-  if (!targetOpenapi || !targetOpenapi.paths) {
-    return new Response("OpenAPI not found", { status: 400 });
-  }
+  // if (!targetOpenapi || !targetOpenapi.paths) {
+  //   return new Response("OpenAPI not found", { status: 400 });
+  // }
 
-  const semanticOpenapiFetchUrl = `https://openapi-util.actionschema.com/getSemanticOpenapi?openapiUrl=${encodeURIComponent(openapiUrl)}`;
+  // TypeError: Body is unusable: Body has already been read
+  // const semanticOpenapiFetchUrl = `https://openapi-util.actionschema.com/getSemanticOpenapi?openapiUrl=${encodeURIComponent(openapiUrl)}`;
 
-  const semanticOpenapi = await fetch(semanticOpenapiFetchUrl, {
-    headers: { "Content-Type": "application/json" },
-  })
-    .then(async (res) => {
-      if (!res.ok) {
-        console.log(res.status, await res.text(), res.statusText);
-      }
-      const json = await res.json();
-      return json;
-    })
-    .catch((e) => {
-      console.log(
-        "Couldn't parse semantic openapi",
-        { semanticOpenapiFetchUrl },
-        e,
-      );
-    });
+  // const semanticOpenapi = await fetch(semanticOpenapiFetchUrl, {
+  //   headers: { "Content-Type": "application/json" },
+  // })
+  //   .then(async (res) => {
+  //     if (!res.ok) {
+  //       console.log(res.status, await res.text(), res.statusText);
+  //     }
+  //     const json = await res.json();
+  //     return json;
+  //   })
+  //   .catch((e) => {
+  //     console.log(
+  //       "Couldn't parse semantic openapi",
+  //       { semanticOpenapiFetchUrl },
+  //       e,
+  //     );
+  //   });
 
-  // const semanticOpenapi = getSemanticOpenapi(
-  //   targetOpenapi,
-  //   openapiUrl,
-  //   operationIds,
-  // );
+  const semanticOpenapi =
+    targetOpenapi && openapiUrl
+      ? getSemanticOpenapi(targetOpenapi, openapiUrl, operationIds)
+      : undefined;
 
   console.dir({ semanticOpenapi }, { depth: 6 });
-  if (!semanticOpenapi) {
-    console.log("SEMANTIC NOT FOUND", { openapiUrl });
-    return new Response("SemanticOpenAPI not found", { status: 400 });
-  }
+  // if (!semanticOpenapi) {
+  //   console.log("SEMANTIC NOT FOUND", { openapiUrl });
+  //   return new Response("SemanticOpenAPI not found", { status: 400 });
+  // }
 
   const body: ChatCompletionInput = await request.json();
   if (body.tools && body.tools.length > 0) {
@@ -437,39 +440,47 @@ export const POST = async (request: Request) => {
     : chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
         .secret;
 
-  const tools: ChatCompletionInput["tools"] = Object.keys(
-    semanticOpenapi.properties,
-  ).map((operationId) => {
-    const { input, description, summary } =
-      semanticOpenapi.properties[operationId].properties;
+  const tools: ChatCompletionInput["tools"] = semanticOpenapi
+    ? Object.keys(semanticOpenapi.properties).map((operationId) => {
+        const { input, description, summary } =
+          semanticOpenapi.properties[operationId].properties;
 
-    // TODO: TBD if this is the best way
-    const fullDescription = summary ? summary + "\n\n" : "" + description || "";
-    return {
-      type: "function",
-      function: {
-        name: operationId,
-        description: fullDescription,
-        parameters: input,
-      },
-    };
+        // TODO: TBD if this is the best way
+        const fullDescription = summary
+          ? summary + "\n\n"
+          : "" + description || "";
+        return {
+          type: "function",
+          function: {
+            name: operationId,
+            description: fullDescription,
+            parameters: input,
+          },
+        };
+      })
+    : undefined;
+
+  console.log({
+    openapiUrl,
+    toolsAmount: tools?.length,
+    hasOpenapi: !!targetOpenapi,
+    hasSemanticOpenapi: !!semanticOpenapi,
   });
 
-  console.log(`tools:`, tools.length);
   // copy to keep body.messages original
   let messages = [...body.messages];
   const stream = body.stream;
 
   const readableStream = await getStream({
     access_token,
-    openapiUrl,
-    targetOpenapi,
     body,
     messages,
     model: finalModel,
     providerBasePath,
-    tools,
     llmSecret,
+    openapiUrl,
+    targetOpenapi,
+    tools,
   });
 
   if (!readableStream.stream) {

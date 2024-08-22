@@ -1,5 +1,5 @@
 {
-  "include": ["main.ts", "api", "public"],
+  "include": ["middleware.ts", "main.ts", "api", "public"],
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ES2022", "DOM"],

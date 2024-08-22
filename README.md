@@ -38,31 +38,9 @@ With the above tooling, we can now create an agent that orchestrates certain tak
 - Testing agents
 - Support for propriatary features like openai code-interpreter or file-search
 
-# TODO:
+# TODO
 
-- An API CLI that can run streaming APIs and regular APIs would be cool!
-
-# Improved Simplified UI
-
-✅ Optimise it to work perfectly with `MenubarX` (small mobile layout)
-
-✅ Create a page that is used if you open chat.actionschema.com that has 6 or 8 chats as iframes on desktop (based on the window width) or it has just one if it's a mobile view.
-
-✅ Every iframe should open the explorer
-
-✅ The new thread button should just go to explore
-
-Every thread should keep track of the last openapi it was at, so we can come back to it.
-
-Explore:
-
-- ✅ button 'new' on top --> **must open clean slate**
-- ✅ recent conversations are at the top
-- ✅ render openapi info
-- ✅ the last openapi is the most prevalent one.
-- search through openapis
-
-# Dynamic OpenAPI
+## Dynamic OpenAPI
 
 🔥 Threads get stored independently of openapiUrl, only in localStorage. OpenapiUrl can be re-routed without trouble, making it dynamic while keeping thread as-is.
 

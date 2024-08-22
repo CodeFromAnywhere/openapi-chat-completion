@@ -8,10 +8,11 @@ export const GET = async (request: Request) => {
   const q = url.searchParams.get("q");
   const openapiUrl = url.searchParams.get("openapiUrl");
 
-  if (!q || !model || !openapiUrl) {
+  if (!q || !model) {
     return new Response("Provide a message/model/openapiUrl", { status: 422 });
   }
-  const chatCompletionUrl = `${url.origin}/${model}/chat/completions?openapiUrl=${openapiUrl}`;
+  const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
+  const chatCompletionUrl = `${url.origin}/${model}/chat/completions${openapiSuffix}`;
 
   const body: ChatCompletionInput = {
     messages: [{ role: "user", content: q }],
@@ -52,7 +53,8 @@ export const GET = async (request: Request) => {
             );
             const content = parsedChunk.choices[0]?.delta?.content;
 
-            // NB: Only content for now
+            // NB: Only content for now. Maybe in the future, also add markdown sections showing tool use.
+
             if (content !== undefined && content !== null) {
               controller.enqueue(encoder.encode(content));
             }

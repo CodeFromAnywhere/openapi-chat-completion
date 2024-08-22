@@ -1,17 +1,20 @@
-import { ChatCompletionChunk, ChatCompletionInput } from "../../types";
+import { ChatCompletionInput } from "../../types";
 
 export const config = { runtime: "edge" };
 
+/** Simple get endpoint to test a stream of a model and see the result in the browser */
 export const GET = async (request: Request) => {
   const url = new URL(request.url);
   const model = url.searchParams.get("model");
   const q = url.searchParams.get("q");
   const openapiUrl = url.searchParams.get("openapiUrl");
 
-  if (!q || !model || !openapiUrl) {
-    return new Response("Provide a message/model/openapiUrl", { status: 422 });
+  if (!q || !model) {
+    return new Response("Provide a message/model", { status: 422 });
   }
-  const chatCompletionUrl = `${url.origin}/${model}/chat/completions?openapiUrl=${openapiUrl}`;
+
+  const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
+  const chatCompletionUrl = `${url.origin}/${model}/chat/completions${openapiSuffix}`;
 
   const body: ChatCompletionInput = {
     messages: [{ role: "user", content: q }],

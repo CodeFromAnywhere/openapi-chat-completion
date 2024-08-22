@@ -1,5 +1,5 @@
 import { jsonGetter } from "edge-util";
-import { Usage } from "../../../public/usage";
+import { Usage } from "../public/usage";
 
 export const chatCompletionProviders = {
   groq: {
