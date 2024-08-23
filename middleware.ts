@@ -50,6 +50,7 @@ const middleware = async (request: Request) => {
 
   const info = await limit(ratelimitUserId || "admin");
 
+  console.log("remaining", info.remaining, info.success);
   if (!info.success) {
     return new Response(
       `Ratelimit reached. The maximum amount of requests is currently set to ${requestsLimit} per 6 hours.`,
