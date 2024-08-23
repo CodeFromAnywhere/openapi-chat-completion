@@ -18,6 +18,7 @@ const middleware = async (request: Request) => {
     // Requesting an openapi does not count towards the ratelimit
     return;
   }
+  const pathname = new URL(request.url).pathname;
 
   const Authorization = request.headers.get("Authorization");
   const userId = request.headers.get("X-USER-ID");
@@ -26,6 +27,7 @@ const middleware = async (request: Request) => {
   const isAdmin =
     !!process.env.ADMIN_SECRET && Authorization === process.env.ADMIN_SECRET;
 
+  console.log("secret", process.env.ADMIN_SECRET);
   // TODO: Add oauth2 and allow for
   const ratelimitUserId = isAdmin ? userId : ip;
 
@@ -42,7 +44,7 @@ const middleware = async (request: Request) => {
     limiter: Ratelimit.slidingWindow(limitAmount, `6h`),
   });
 
-  console.log("HIT RATELIMIT MIDDLEWARE", {
+  console.log("HIT RATELIMIT MIDDLEWARE", pathname, {
     isAdmin,
     limitAmount,
     ratelimitUserId,
