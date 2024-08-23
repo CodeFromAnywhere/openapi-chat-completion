@@ -33,7 +33,7 @@ const middleware = async (request: Request) => {
 
   const redis = Redis.fromEnv();
 
-  const requestsLimit = 25;
+  const requestsLimit = 100;
   const adminLimit = 10000;
   const limitAmount = ratelimitUserId ? requestsLimit : adminLimit;
 
