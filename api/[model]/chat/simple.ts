@@ -2,17 +2,18 @@ import { ChatCompletionChunk, ChatCompletionInput } from "../../types";
 
 export const config = { runtime: "edge" };
 
-export const GET = async (request: Request) => {
-  const url = new URL(request.url);
-  const model = url.searchParams.get("model");
-  const q = url.searchParams.get("q");
-  const openapiUrl = url.searchParams.get("openapiUrl");
-
+const getSimpleResponse = async (context: {
+  q: string | null;
+  model: string | null;
+  openapiUrl: string | null;
+  originUrl: string;
+}) => {
+  const { model, openapiUrl, originUrl, q } = context;
   if (!q || !model) {
     return new Response("Provide a message/model/openapiUrl", { status: 422 });
   }
   const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
-  const chatCompletionUrl = `${url.origin}/${model}/chat/completions${openapiSuffix}`;
+  const chatCompletionUrl = `${originUrl}/${model}/chat/completions${openapiSuffix}`;
 
   const body: ChatCompletionInput = {
     messages: [{ role: "user", content: q }],
@@ -76,4 +77,18 @@ export const GET = async (request: Request) => {
       "Transfer-Encoding": "chunked",
     },
   });
+};
+export const POST = async (request: Request) => {
+  const url = new URL(request.url);
+  const model = url.searchParams.get("model");
+  const context = await request.json();
+  return getSimpleResponse({ ...context, model });
+};
+
+export const GET = async (request: Request) => {
+  const url = new URL(request.url);
+  const model = url.searchParams.get("model");
+  const q = url.searchParams.get("q");
+  const openapiUrl = url.searchParams.get("openapiUrl");
+  return getSimpleResponse({ model, openapiUrl, originUrl: url.origin, q });
 };
