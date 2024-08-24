@@ -82,7 +82,7 @@ export const POST = async (request: Request) => {
   const url = new URL(request.url);
   const model = url.searchParams.get("model");
   const context = await request.json();
-  return getSimpleResponse({ ...context, model });
+  return getSimpleResponse({ ...context, originUrl: url.origin, model });
 };
 
 export const GET = async (request: Request) => {
