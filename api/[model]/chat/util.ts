@@ -13,7 +13,7 @@ export const chatCompletionProviders: {
     secret: process.env.OPENAI_API_KEY,
   },
   anthropic: {
-    baseUrl: "https://chat.actionschema.com/transformers/anthropic",
+    baseUrl: "https://anthropic.actionschema.com/",
     secret: process.env.ANTHROPIC_API_KEY,
   },
 };
