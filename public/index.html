@@ -96,6 +96,9 @@
     </div>
 
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const openapiUrl = urlParams.get('openapiUrl');
+
         // Initialize settings
         const defaultSettings = {
             apiKey: '',
@@ -155,7 +158,8 @@
             hostedContentUrl = null;
 
             try {
-                const res = await fetch(`${settings.model}/chat/completions`, {
+                const openapiSuffix = openapiUrl ? `?openapiUrl=${encodeURIComponent(openapiUrl)}` : '';
+                const res = await fetch(`${settings.model}/chat/completions${openapiSuffix}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -316,7 +320,6 @@
         adjustTextareaHeight(); // Initial adjustment
 
         // Check for remix parameter
-        const urlParams = new URLSearchParams(window.location.search);
         const remixUrl = urlParams.get('remix');
         if (remixUrl) {
             fetch(remixUrl)
