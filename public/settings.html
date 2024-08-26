@@ -4,105 +4,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
+    <title>Chat Completions API Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <header class="mb-6">
-            <h1 class="text-3xl font-bold mb-2">Settings</h1>
-            <a href="#" id="backButton" class="text-blue-500 hover:text-blue-700">&larr; Back to Repository</a>
-        </header>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <div class="container mx-auto p-4 flex-grow">
+        <h1 class="text-3xl font-bold mb-4">Chat Completions API Settings</h1>
 
-        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <h2 class="text-2xl font-semibold mb-4">X-Headers</h2>
-            <div id="headers-container">
-                <!-- Headers will be dynamically added here -->
-            </div>
-            <button id="addHeader" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Add Header
-            </button>
-        </div>
-
-        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <h2 class="text-2xl font-semibold mb-4">Model Settings</h2>
+        <div class="bg-white p-5 border rounded-md shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Settings</h3>
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="modelString">
-                    Model String
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="modelString" type="text" placeholder="Enter model string">
+                <label for="apiKey" class="block mb-2">API Key (free tier coming soon):</label>
+                <input type="text" id="apiKey" class="w-full border p-2 rounded">
+                <div class="mt-2 text-sm">
+                    <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-500 mr-2">OpenAI</a>
+                    <a href="https://console.anthropic.com/settings/keys" target="_blank"
+                        class="text-blue-500 mr-2">Anthropic</a>
+                    <a href="https://console.groq.com/keys" target="_blank" class="text-blue-500">Groq</a>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="model" class="block mb-2">Model:</label>
+                <input type="text" id="model" class="w-full border p-2 rounded mb-2">
+                <div class="flex flex-wrap gap-2">
+                    <button class="modelBtn bg-gray-200 px-2 py-1 rounded text-sm">gpt-4o-mini</button>
+                    <button class="modelBtn bg-gray-200 px-2 py-1 rounded text-sm">llama-3.1-70b-versatile</button>
+                    <button class="modelBtn bg-gray-200 px-2 py-1 rounded text-sm">claude-3-5-sonnet-20240620</button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="basePath" class="block mb-2">Base Path:</label>
+                <input type="text" id="basePath" class="w-full border p-2 rounded mb-2">
+                <div class="flex flex-wrap gap-2">
+                    <button class="basePathBtn bg-gray-200 px-2 py-1 rounded text-sm">https://api.openai.com/v1</button>
+                    <button
+                        class="basePathBtn bg-gray-200 px-2 py-1 rounded text-sm">https://api.groq.com/openai/v1</button>
+                    <button
+                        class="basePathBtn bg-gray-200 px-2 py-1 rounded text-sm">https://anthropic.actionschema.com</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="openapiUrl" class="block mb-2">OpenAPI URL (Tools for Chat Completion):</label>
+                <input type="text" id="openapiUrl" class="w-full border p-2 rounded">
+            </div>
+
+            <div class="mb-4">
+                <label for="xOpenapiSecret" class="block mb-2">OpenAPI Secret (not needed if using ActionSchema
+                    Auth):</label>
+                <input type="text" id="xOpenapiSecret" class="w-full border p-2 rounded">
+            </div>
+
+            <div class="mb-4">
+                <label for="systemPrompt" class="block mb-2">System Prompt:</label>
+                <textarea id="systemPrompt" class="w-full border p-2 rounded" rows="4"></textarea>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
             </div>
         </div>
-
-        <button id="saveSettings" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Save Settings
-        </button>
     </div>
 
     <script>
-        // Load existing headers and model string from localStorage
-        const headers = JSON.parse(localStorage.getItem('x-headers')) || {};
-        const modelString = localStorage.getItem('modelString') || '';
+        const defaultSettings = {
+            apiKey: '',
+            model: 'claude-3-5-sonnet-20240620',
+            basePath: "https://anthropic.actionschema.com",
+            systemPrompt: 'You are a helpful AI assistant. Respond to the user\'s messages accordingly.',
+            xOpenapiSecret: '',
+            openapiUrl: ''
+        };
+        let settings = JSON.parse(localStorage.getItem('chatSettings')) || defaultSettings;
 
-        // Populate headers
-        const headersContainer = document.getElementById('headers-container');
-        function addHeaderInput(key = '', value = '') {
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'mb-4 flex items-center';
-            headerDiv.innerHTML = `
-                <input class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2" type="text" placeholder="Header Key" value="${key}">
-                <input class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2" type="text" placeholder="Header Value" value="${value}">
-                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded delete-header">Delete</button>
-            `;
-            headersContainer.appendChild(headerDiv);
+        // Update settings in the form
+        function updateSettingsForm() {
+            document.getElementById('apiKey').value = settings.apiKey;
+            document.getElementById('model').value = settings.model;
+            document.getElementById('basePath').value = settings.basePath;
+            document.getElementById('systemPrompt').value = settings.systemPrompt;
+            document.getElementById('xOpenapiSecret').value = settings.xOpenapiSecret;
+            document.getElementById('openapiUrl').value = settings.openapiUrl;
         }
-
-        // Add existing headers
-        for (const [key, value] of Object.entries(headers)) {
-            addHeaderInput(key, value);
-        }
-
-        // Add new header input
-        document.getElementById('addHeader').addEventListener('click', () => addHeaderInput());
-
-        // Delete header
-        headersContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-header')) {
-                e.target.closest('div').remove();
-            }
-        });
-
-        // Set model string
-        document.getElementById('modelString').value = modelString;
 
         // Save settings
-        document.getElementById('saveSettings').addEventListener('click', () => {
-            const newHeaders = {};
-            document.querySelectorAll('#headers-container > div').forEach(div => {
-                const key = div.querySelector('input:first-child').value.trim();
-                const value = div.querySelector('input:last-of-type').value.trim();
-                if (key && value) {
-                    newHeaders[key] = value;
-                }
+        function saveSettings() {
+            settings.apiKey = document.getElementById('apiKey').value;
+            settings.model = document.getElementById('model').value;
+            settings.basePath = document.getElementById('basePath').value;
+            settings.systemPrompt = document.getElementById('systemPrompt').value;
+            settings.xOpenapiSecret = document.getElementById('xOpenapiSecret').value;
+            settings.openapiUrl = document.getElementById('openapiUrl').value;
+            localStorage.setItem('chatSettings', JSON.stringify(settings));
+            window.location.href = 'index.html'
+        }
+
+        // Event listeners for model buttons
+        document.querySelectorAll('.modelBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('model').value = btn.textContent;
             });
-
-            const newModelString = document.getElementById('modelString').value.trim();
-
-            localStorage.setItem('x-headers', JSON.stringify(newHeaders));
-            localStorage.setItem('modelString', newModelString);
-
-            alert('Settings saved successfully!');
         });
 
-        // Back button functionality
-        document.getElementById('backButton').addEventListener('click', (e) => {
-            e.preventDefault();
-            // Replace with actual repository URL
-            window.history.back();
+        // Event listeners for base path buttons
+        document.querySelectorAll('.basePathBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('basePath').value = btn.textContent;
+            });
         });
+
+        // Event listener for save button
+        document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+
+        // Initialize settings form
+        updateSettingsForm();
     </script>
 </body>
 

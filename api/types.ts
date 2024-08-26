@@ -50,6 +50,10 @@ export interface ChatCompletionChunk {
   x_actionschema?: any;
 }
 
+// additions by me
+export type ChatCompletionExtension = {
+  basePath?: string;
+};
 export type ChatCompletionInput = {
   messages: Array<{
     content:

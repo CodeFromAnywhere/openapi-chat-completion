@@ -1,24 +1,26 @@
-import { ChatCompletionInput } from "../../types";
+import { ChatCompletionExtension, ChatCompletionInput } from "../types";
+import { chatCompletionSecrets } from "./util";
 
 export const config = { runtime: "edge" };
 
 /** Simple get endpoint to test a stream of a model and see the result in the browser */
 export const GET = async (request: Request) => {
   const url = new URL(request.url);
-  const model = url.searchParams.get("model");
   const q = url.searchParams.get("q");
   const openapiUrl = url.searchParams.get("openapiUrl");
 
-  if (!q || !model) {
-    return new Response("Provide a message/model", { status: 422 });
+  if (!q) {
+    return new Response("Provide a message", { status: 422 });
   }
 
   const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
-  const chatCompletionUrl = `${url.origin}/${model}/chat/completions${openapiSuffix}`;
+  const chatCompletionUrl = `${url.origin}/chat/completions${openapiSuffix}`;
 
-  const body: ChatCompletionInput = {
+  const body: ChatCompletionInput & ChatCompletionExtension = {
     messages: [{ role: "user", content: q }],
-    model,
+    // hardcoded!
+    basePath: "https://api.openai.com/v1",
+    model: "gpt-4o-mini",
     stream: true,
     stream_options: { include_usage: true },
   };

@@ -8,10 +8,11 @@ import {
 
 import {
   ChatCompletionChunk,
+  ChatCompletionExtension,
   ChatCompletionInput,
   FullToolCallDelta,
-} from "../../types.js";
-import { chatCompletionProviders } from "./util.js";
+} from "../types.js";
+import { chatCompletionSecrets } from "./util.js";
 
 // can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
 //export const config = { runtime: "edge" };
@@ -40,9 +41,8 @@ type StreamContext = {
   access_token?: string;
   openapiUrl: string | null;
   targetOpenapi?: OpenapiDocument;
-  providerBasePath: string;
+  basePath: string;
   llmSecret?: string;
-  model: string;
   tools?: any[];
   body: any;
   messages: any[];
@@ -52,13 +52,13 @@ const streamLlmResponse = async (
   controller: ReadableStreamDefaultController<any>,
   context: StreamContext,
 ) => {
-  const { messages, model, providerBasePath, tools, llmSecret } = context;
+  const { messages, basePath, tools, llmSecret } = context;
 
   if (!llmSecret) {
     const error = "OpenAI API key not configured";
     console.error(error);
     controller.enqueue(
-      new TextEncoder().encode(createDeltaString(model, error)),
+      new TextEncoder().encode(createDeltaString(context.body.model, error)),
     );
     controller.close();
     return;
@@ -67,11 +67,11 @@ const streamLlmResponse = async (
   const body: ChatCompletionInput = {
     ...context.body,
     messages: messages,
-    model,
+    model: context.body.model,
     tools: !tools || tools.length === 0 ? undefined : tools,
   };
 
-  const llmResponse = await fetch(`${providerBasePath}/chat/completions`, {
+  const llmResponse = await fetch(`${basePath}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,7 +86,7 @@ const streamLlmResponse = async (
     const error = `\n\nLLM API error (${llmResponse.status} - ${llmResponse.statusText}) ${errorText}`;
     console.error(error);
     controller.enqueue(
-      new TextEncoder().encode(createDeltaString(model, error)),
+      new TextEncoder().encode(createDeltaString(context.body.model, error)),
     );
     controller.close();
     return;
@@ -97,7 +97,7 @@ const streamLlmResponse = async (
     const error = `\n\nCouldn't get reader`;
     console.error(error);
     controller.enqueue(
-      new TextEncoder().encode(createDeltaString(model, error)),
+      new TextEncoder().encode(createDeltaString(context.body.model, error)),
     );
 
     controller.close();
@@ -154,7 +154,7 @@ const streamLlmResponse = async (
 
           controller.enqueue(
             new TextEncoder().encode(
-              createDeltaString(model, "Error parsing data JSON"),
+              createDeltaString(context.body.model, "Error parsing data JSON"),
             ),
           );
         }
@@ -226,7 +226,7 @@ const getStream = async (
   status?: number;
   message?: string;
 }> => {
-  const { access_token, openapiUrl, targetOpenapi, model } = context;
+  const { access_token, openapiUrl, targetOpenapi, body } = context;
 
   let messages = context?.messages;
 
@@ -318,7 +318,7 @@ const getStream = async (
           id: "chatcmpl-SOMETHING",
           object: "chat.completion.chunk",
           created: Math.round(Date.now() / 1000),
-          model,
+          model: context.body.model,
           system_fingerprint: "",
           choices: [
             {
@@ -353,18 +353,39 @@ const getStream = async (
   return { stream, status: 200 };
 };
 
+const defaultBasePath = Object.keys(chatCompletionSecrets)[0];
+
 export const POST = async (request: Request) => {
-  const forcedLlmBasePath = request.headers.get("X-LLM-BASEPATH");
-  const forcedLlmSecret = request.headers.get("X-LLM-SECRET");
-  const forcedOpenapiSecret = request.headers.get("X-OPENAPI-SECRET");
+  const openapiSecret = request.headers.get("X-OPENAPI-SECRET");
+  const access_token = openapiSecret || undefined;
   // for now, must be forced through a header
-  const access_token = forcedOpenapiSecret || undefined;
+  const Authorization = request.headers.get("Authorization");
   const url = new URL(request.url);
   const openapiUrl = url.searchParams.get("openapiUrl");
 
-  const model = url.searchParams.get("model");
+  const body: ChatCompletionInput & ChatCompletionExtension =
+    await request.json();
+  if (body.tools && body.tools.length > 0) {
+    return new Response("Tools need to be supplied through the OpenAPI", {
+      status: 400,
+    });
+  }
 
-  console.log("entered", { access_token, openapiUrl });
+  const basePath = body.basePath || defaultBasePath;
+  const llmSecret = Authorization
+    ? Authorization.slice("Bearer ".length)
+    : chatCompletionSecrets[basePath as keyof typeof chatCompletionSecrets];
+
+  const selfAuthorized = !!Authorization;
+
+  console.log("entered", {
+    access_token,
+
+    llmSecret,
+    basePath,
+    openapiUrl,
+    selfAuthorized,
+  });
 
   // if (!openapiUrl) {
   //   return new Response("Please put an openapiUrl in your pathname", {
@@ -407,38 +428,10 @@ export const POST = async (request: Request) => {
       ? getSemanticOpenapi(targetOpenapi, openapiUrl, operationIds)
       : undefined;
 
-  console.dir({ semanticOpenapi }, { depth: 6 });
   // if (!semanticOpenapi) {
   //   console.log("SEMANTIC NOT FOUND", { openapiUrl });
   //   return new Response("SemanticOpenAPI not found", { status: 400 });
   // }
-
-  const body: ChatCompletionInput = await request.json();
-  if (body.tools && body.tools.length > 0) {
-    return new Response("Tools need to be supplied through the OpenAPI", {
-      status: 400,
-    });
-  }
-
-  const [provider, ...chunks] = model!.split(".");
-  const finalModel = chunks.join(".");
-
-  if (
-    !(forcedLlmBasePath && forcedLlmSecret) &&
-    !Object.keys(chatCompletionProviders).includes(provider)
-  ) {
-    return new Response("Unsupported provider", { status: 400 });
-  }
-
-  const providerBasePath =
-    forcedLlmBasePath ||
-    chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
-      .baseUrl;
-
-  const llmSecret = forcedLlmBasePath
-    ? forcedLlmSecret || undefined
-    : chatCompletionProviders[provider as keyof typeof chatCompletionProviders]
-        .secret;
 
   const tools: ChatCompletionInput["tools"] = semanticOpenapi
     ? Object.keys(semanticOpenapi.properties).map((operationId) => {
@@ -475,8 +468,7 @@ export const POST = async (request: Request) => {
     access_token,
     body,
     messages,
-    model: finalModel,
-    providerBasePath,
+    basePath,
     llmSecret,
     openapiUrl,
     targetOpenapi,

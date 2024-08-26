@@ -1,23 +1,30 @@
-import { ChatCompletionChunk, ChatCompletionInput } from "../../types";
+import {
+  ChatCompletionChunk,
+  ChatCompletionExtension,
+  ChatCompletionInput,
+} from "../types";
+import { defaultModel } from "./util";
 
 export const config = { runtime: "edge" };
 
 const getSimpleResponse = async (context: {
   q: string | null;
-  model: string | null;
   openapiUrl: string | null;
+  model: string | null;
   originUrl: string;
+  basePath: string | null;
 }) => {
-  const { model, openapiUrl, originUrl, q } = context;
-  if (!q || !model) {
-    return new Response("Provide a message/model/openapiUrl", { status: 422 });
+  const { model, openapiUrl, basePath, originUrl, q } = context;
+  if (!q) {
+    return new Response("Provide a message", { status: 422 });
   }
   const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
-  const chatCompletionUrl = `${originUrl}/${model}/chat/completions${openapiSuffix}`;
+  const chatCompletionUrl = `${originUrl}/chat/completions${openapiSuffix}`;
 
-  const body: ChatCompletionInput = {
+  const body: ChatCompletionInput & ChatCompletionExtension = {
     messages: [{ role: "user", content: q }],
-    model,
+    model: model || defaultModel,
+    basePath: basePath || undefined,
     stream: true,
     stream_options: { include_usage: true },
   };
@@ -88,7 +95,14 @@ export const POST = async (request: Request) => {
 export const GET = async (request: Request) => {
   const url = new URL(request.url);
   const model = url.searchParams.get("model");
+  const basePath = url.searchParams.get("basePath");
   const q = url.searchParams.get("q");
   const openapiUrl = url.searchParams.get("openapiUrl");
-  return getSimpleResponse({ model, openapiUrl, originUrl: url.origin, q });
+  return getSimpleResponse({
+    model,
+    openapiUrl,
+    originUrl: url.origin,
+    q,
+    basePath,
+  });
 };

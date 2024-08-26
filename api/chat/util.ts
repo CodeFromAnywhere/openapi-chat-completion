@@ -1,22 +1,12 @@
-export const chatCompletionProviders: {
-  [providerSlug: string]: {
-    baseUrl: string;
-    secret: any;
-  };
-} = {
-  groq: {
-    baseUrl: "https://api.groq.com/openai/v1",
-    secret: process.env.GROQ_API_KEY,
-  },
-  openai: {
-    baseUrl: "https://api.openai.com/v1",
-    secret: process.env.OPENAI_API_KEY,
-  },
-  anthropic: {
-    baseUrl: "https://anthropic.actionschema.com/",
-    secret: process.env.ANTHROPIC_API_KEY,
-  },
+export const chatCompletionSecrets = {
+  // first one is default basepath
+  "https://api.openai.com/v1": process.env.OPENAI_API_KEY,
+  "https://api.groq.com/openai/v1": process.env.GROQ_API_KEY,
+  "https://anthropic.actionschema.com": process.env.ANTHROPIC_API_KEY,
 };
+
+export const defaultModel = "gpt-4o-mini";
+export const defaultBasePath = "https://api.openai.com/v1";
 
 /** Useful utility for streams! */
 export async function pipeResponseToController<T>(
