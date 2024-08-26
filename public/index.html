@@ -69,12 +69,12 @@
                 placeholder="Enter your message here..."></textarea>
         </div>
 
-        <div class="mb-4 flex flex-row gap-4">
+        <div class="mb-4 flex flex-row gap-4 items-center">
             <button id="submitBtn" class="bg-green-500 text-white px-4 py-2 rounded">
                 <i id="submitIcon" class="fas fa-paper-plane mr-2"></i>Submit
             </button>
-            <textarea id="systemPromptInfo"></textarea>
-            <div id="toolInfo"></div>
+            <div class="cursor-pointer text-sm" id="systemPromptInfo">See System Prompt</div>
+            <div class="cursor-pointer text-sm" id="toolInfo">See Tools</div>
         </div>
 
         <div class="relative">
@@ -435,8 +435,9 @@
         }
 
         document.getElementById("userPrompt").focus()
-        document.getElementById("systemPromptInfo").value = settings.systemPrompt
-        document.getElementById("toolInfo").innerText = settings.openapiUrl
+        document.getElementById("systemPromptInfo").onclick = () => alert(settings.systemPrompt);
+        document.getElementById("toolInfo").onclick = () => alert(`OpenAPI: ${settings.openapiUrl || "NONE"}`);
+
 
     </script>
 </body>
