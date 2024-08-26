@@ -16,7 +16,7 @@
 
 ❌ Figure out the best way to ratelimit each provider independently. Allow customisation in ratelimits on a per-model per-ip, and per-user basis, offering a very large free tier for tiny models, that can be overwritten (made smaller) by downstream endpoints. **Just keep it free for now**
 
-Test chat.actionschema.com locally on each provider. chat.actionschema.com should be the goto place better than anthropic.actionschema.com.
+✅ Test chat.actionschema.com locally on each provider. chat.actionschema.com should be the goto place better than anthropic.actionschema.com.
 
 Add executed tool use into the message as markdown codeblocks: input + output
 
