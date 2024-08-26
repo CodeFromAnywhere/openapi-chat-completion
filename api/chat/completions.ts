@@ -226,7 +226,7 @@ const getStream = async (
   status?: number;
   message?: string;
 }> => {
-  const { access_token, openapiUrl, targetOpenapi, body } = context;
+  const { access_token, openapiUrl, targetOpenapi } = context;
 
   let messages = context?.messages;
 
@@ -254,7 +254,7 @@ const getStream = async (
         const { accumulatedMessage, toolCalls } = result;
 
         if (!targetOpenapi || !openapiUrl || toolCalls.length === 0) {
-          // if there are no tool calls, we can safely break out, everything has been said.
+          // If there are no tool calls, we can safely break out, everything has been said.
           break;
         }
 

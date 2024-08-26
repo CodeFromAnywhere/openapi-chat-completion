@@ -18,6 +18,8 @@
 
 ✅ Test chat.actionschema.com locally on each provider. chat.actionschema.com should be the goto place better than anthropic.actionschema.com.
 
+✅ Create profile creator and selector allowing you to easily see which settings are applied and keep track of multiple settings
+
 Add executed tool use into the message as markdown codeblocks: input + output
 
 Think about a way to maybe also allow for streaming deltas of downstream streaming APIs
