@@ -122,6 +122,23 @@
                 .catch(error => console.error('Error fetching remix content:', error));
         }
 
+        const profilesUrl = urlParams.get('profiles');
+        if (profilesUrl) {
+            fetch(profilesUrl)
+                .then(response => response.text())
+                .then(content => {
+
+                    const newProfiles = JSON.parse(content);
+                    const first = Object.keys(newProfiles)[0];
+                    localStorage.setItem('selectedProfile', first)
+                    localStorage.setItem('chatProfiles', JSON.stringify({ ...profiles, ...newProfiles }));
+
+                    window.location.href = "/"
+
+                })
+                .catch(error => console.error('Error fetching remix content:', error));
+        }
+
         const systemUrl = urlParams.get('system');
         if (systemUrl) {
             fetch(systemUrl)

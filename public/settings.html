@@ -14,7 +14,16 @@
         <h1 class="text-3xl font-bold mb-4">Chat Completions API Settings</h1>
 
         <div class="bg-white p-5 border rounded-md shadow-lg">
-            <h3 class="text-lg font-bold mb-4">Settings</h3>
+            <div class="mb-4 flex justify-between items-center">
+                <h3 class="text-lg font-bold">Settings</h3>
+                <div class="flex items-center">
+                    <select id="profileSelect" class="border p-2 rounded mr-2">
+                        <option value="">Select Profile</option>
+                    </select>
+                    <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded">Delete
+                        Profile</button>
+                </div>
+            </div>
             <div class="mb-4">
                 <label for="apiKey" class="block mb-2">API Key (free tier coming soon):</label>
                 <input type="text" id="apiKey" class="w-full border p-2 rounded">
@@ -65,9 +74,17 @@
                 <textarea id="systemPrompt" class="w-full border p-2 rounded" rows="4"></textarea>
             </div>
 
-            <div class="flex justify-end gap-4 items-center">
-                <input type="text" id="profileName" placeholder="Profile Name" class="border p-2 rounded">
-                <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+            <div class="flex justify-between items-center">
+                <div>
+                    <input type="text" id="profileName" placeholder="Profile Name" class="border p-2 rounded mr-2">
+                    <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+                </div>
+                <div>
+                    <button id="publishProfilesBtn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Publish
+                        Profiles</button>
+                    <button id="importProfilesBtn" class="bg-yellow-500 text-white px-4 py-2 rounded">Import
+                        Profiles</button>
+                </div>
             </div>
         </div>
     </div>
@@ -82,6 +99,37 @@
             systemPrompt: 'Make me a vanilla HTML + TailwindCDN + CSS + JS website with the following requirements:\n\n- everything is always stored as much as possible in localStorage and editable in settings, including api keys (if needed)\n- for icons, use font awesome\n- always respond with a full new HTML page in a codeblock',
         };
         let settings = JSON.parse(localStorage.getItem('chatSettings')) || defaultSettings;
+        let chatProfiles = JSON.parse(localStorage.getItem('chatProfiles')) || {};
+
+        const generateRandomString = (length) => {
+            const characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const characterArray = "x".repeat(length).split("");
+
+            const string = characterArray
+                .map(() => {
+                    const randomIndex = Math.floor(Math.random() * characters.length); //0-63 --> index for above
+                    const character = characters.charAt(randomIndex);
+                    return character;
+                })
+                .join("");
+
+            return string;
+        };
+
+        // Function to populate profile select
+        function populateProfileSelect() {
+            const profileSelect = document.getElementById('profileSelect');
+            profileSelect.innerHTML = '<option value="">Select Profile</option>';
+            for (const profileName in chatProfiles) {
+                const option = document.createElement('option');
+                option.value = profileName;
+                option.textContent = profileName;
+                if (profileName === localStorage.getItem('selectedProfile')) {
+                    option.selected = true;
+                }
+                profileSelect.appendChild(option);
+            }
+        }
 
         // Update settings in the form
         function updateSettingsForm() {
@@ -115,9 +163,9 @@
 
             const profileName = document.getElementById('profileName').value;
             if (profileName) {
-                let chatProfiles = JSON.parse(localStorage.getItem('chatProfiles')) || {};
                 chatProfiles[profileName] = settings;
                 localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
+                localStorage.setItem('selectedProfile', profileName);
             }
 
             window.location.href = url;
@@ -140,8 +188,94 @@
         // Event listener for save button
         document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
 
-        // Initialize settings form
+        // Event listener for profile select
+        document.getElementById('profileSelect').addEventListener('change', (e) => {
+            const selectedProfile = e.target.value;
+            if (selectedProfile && chatProfiles[selectedProfile]) {
+                settings = chatProfiles[selectedProfile];
+                localStorage.setItem('chatSettings', JSON.stringify(settings));
+                localStorage.setItem('selectedProfile', selectedProfile);
+                updateSettingsForm();
+            }
+        });
+
+        // Event listener for delete profile button
+        document.getElementById('deleteProfileBtn').addEventListener('click', () => {
+            const selectedProfile = document.getElementById('profileSelect').value;
+            if (selectedProfile) {
+                delete chatProfiles[selectedProfile];
+                localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
+                localStorage.removeItem('selectedProfile');
+                populateProfileSelect();
+                settings = defaultSettings;
+                updateSettingsForm();
+            }
+        });
+
+        // Event listener for publish profiles button
+        document.getElementById('publishProfilesBtn').addEventListener('click', async () => {
+            try {
+                const res = await fetch('https://content.actionschema.com/set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: JSON.stringify(chatProfiles, undefined, 2), extension: "json", prompt: "Export the chat profiles I have", slug: generateRandomString(64) })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    window.location.href = data.contentUrl;
+                } else {
+                    console.error('Failed to publish profiles');
+                }
+            } catch (error) {
+                console.error('Error publishing profiles:', error);
+            }
+        });
+
+        // Event listener for import profiles button
+        document.getElementById('importProfilesBtn').addEventListener('click', () => {
+            const profilesUrl = prompt('Enter the URL of the profiles JSON:');
+            if (profilesUrl) {
+                window.location.href = `/?profiles=${encodeURIComponent(profilesUrl)}`;
+            }
+        });
+
+        // Initialize settings form and profile select
         updateSettingsForm();
+        populateProfileSelect();
+
+        // Load profiles from URL if provided
+        const urlParams = new URLSearchParams(window.location.search);
+        const profilesUrl = urlParams.get('profiles');
+        if (profilesUrl) {
+            fetch(profilesUrl)
+                .then(response => response.json())
+                .then(importedProfiles => {
+                    chatProfiles = { ...chatProfiles, ...importedProfiles };
+                    localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
+                    populateProfileSelect();
+                })
+                .catch(error => console.error('Error importing profiles:', error));
+        }
+
+        // Load default profiles if chatProfiles is empty
+        if (Object.keys(chatProfiles).length === 0) {
+            const defaultProfilesUrl = 'https://your-default-profiles-url.com';
+            fetch(defaultProfilesUrl)
+                .then(response => response.json())
+                .then(defaultProfiles => {
+                    chatProfiles = defaultProfiles;
+                    localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
+                    populateProfileSelect();
+                    if (Object.keys(defaultProfiles).length > 0) {
+                        const firstProfileName = Object.keys(defaultProfiles)[0];
+                        settings = defaultProfiles[firstProfileName];
+                        localStorage.setItem('chatSettings', JSON.stringify(settings));
+                        localStorage.setItem('selectedProfile', firstProfileName);
+                        updateSettingsForm();
+                    }
+                })
+                .catch(error => console.error('Error loading default profiles:', error));
+        }
     </script>
 </body>
 

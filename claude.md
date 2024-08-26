@@ -1,5 +1,9 @@
 # Universal chat completion landingpage for chat.actionschema.com
 
+✅ Created code-agent openaip and plugged it into search
+
+✅ Anthropic transformer to use claude 3.5 as a stream
+
 ✅ Create Test and confirm the `/chat/completions` endpoint of claude works.
 
 ✅ Make `anthropic/chat/completions` also work with tools!!! This is big.
@@ -18,30 +22,14 @@
 
 ✅ Test chat.actionschema.com locally on each provider. chat.actionschema.com should be the goto place better than anthropic.actionschema.com.
 
+# Profiles
+
 ✅ Create profile creator and selector allowing you to easily see which settings are applied and keep track of multiple settings
 
-Add executed tool use into the message as markdown codeblocks: input + output
+'Publish profiles' can use `content.actionschema.com/set` to retrieve a URL containing a JSON of your profiles. It could navigate there with window.location.href={url}
 
-Think about a way to maybe also allow for streaming deltas of downstream streaming APIs
+`?profiles={url}` should contain a JSON. if so, it should load in a set of profiles from someone else merging it with your current profiles at `chatProfiles`
 
-Maybe we need to introduce a new primitive, so that agent stacking becomes viable. Imagine your agent having a conversation with another agent. How to show this? How to structure this data? Cool idea! Maybe it can be done with simplified API
+An ability to remove profiles easily will be great. For this, the profile selector needs to be added on settings to switch profile just like in index. A 'delete profile' button next to the selector shall delete the key from chatProfiles, and set currentProfile to the next option, and refresh the page.
 
-```ts
-type ToolDelta = {
-  id: string;
-  input: any;
-  partial: any;
-  output: any;
-};
-```
-
-# I want to chat with Claude with an operation definition as context and some presets
-
-- ✅ Created code-agent openaip and plugged it into search
-- ✅ Anthropic transformer to use claude 3.5 as a stream
-- Have proper error handling in `chat-component.js`
-- Make `chat-component.js` work without error
-- Make chat/simple respond with actions in \`\`\`request:{operationId}\`\`\` codeblock and \`\`\`response:{operationId}\`\`\` codeblock.
-- Use `/chat/simple` instead
-- ensure unfinished md gets rendered correctly
-- Text-wrap text in the chat box
+When chatProfiles is not set yet, load in profiles from a hardcoded URL and select the first one. That url is to be given.
