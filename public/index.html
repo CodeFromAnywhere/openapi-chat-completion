@@ -122,14 +122,7 @@
                 .catch(error => console.error('Error fetching remix content:', error));
         }
 
-        const q = urlParams.get('q');
-        if (q) {
-            const value = decodeURIComponent(q).replaceAll("+", " ");
-            document.getElementById('userPrompt').value = value;
-            isHosted = false;
-            streamResponse(value);
 
-        }
 
         const profilesUrl = urlParams.get('profiles');
         if (profilesUrl) {
@@ -235,6 +228,8 @@
                 response.value = `Error: ${error.message}`;
             }
         }
+
+
 
         // Function to check for code blocks and show/hide the buttons
         async function checkForCodeBlocks() {
@@ -362,6 +357,17 @@
                 })
                 .catch(error => console.error('Error loading default profiles:', error));
         }
+
+        const q = urlParams.get('q');
+        if (q) {
+            const value = decodeURIComponent(q).replaceAll("+", " ");
+
+            document.getElementById('userPrompt').value = value;
+            isHosted = false;
+            streamResponse(value);
+
+        }
+
     </script>
 </body>
 
