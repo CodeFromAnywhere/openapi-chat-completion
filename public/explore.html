@@ -58,7 +58,7 @@
         // Function to navigate to an API
         function navigateToApi(openapiUrl, threadId) {
             sessionStorage.setItem('activeThreadId', threadId);
-            window.location.href = `/openai.gpt-4o-mini/chat/completions?openapiUrl=${openapiUrl}`;
+            window.location.href = `/chat/completions?openapiUrl=${openapiUrl}`;
         }
 
 

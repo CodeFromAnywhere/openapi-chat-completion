@@ -3,11 +3,7 @@ import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 
 export const config = {
-  matcher: [
-    "/:model/chat/completions",
-    "/:model/chat/simple",
-    "/:model/chat/get",
-  ],
+  matcher: ["/chat/completions", "/chat/simple", "/chat/get"],
 };
 
 const middleware = async (request: Request) => {

@@ -127,7 +127,7 @@
 
             const model = localStorage.getItem('modelString') || "openai.gpt-4o-mini";
 
-            const response = await fetch(`${window.location.origin}/${model}/chat/completions?openapiUrl=${encodeURIComponent(openapiUrl)}`, {
+            const response = await fetch(`${window.location.origin}/chat/completions?openapiUrl=${encodeURIComponent(openapiUrl)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -135,7 +135,8 @@
                 },
                 body: JSON.stringify({
                     messages: threads[activeThreadId].messages.map(msg => ({ role: msg.role, content: msg.message })),
-                    stream: true
+                    stream: true,
+                    model
                 })
             });
 

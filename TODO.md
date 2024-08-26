@@ -2,7 +2,7 @@
 
 If `?q={msg}` is given, should be immediately executed after applying the other params.
 
-If not, at least the input should autofocus.
+If not, at least the input should auto-focus.
 
 Always: Log deltas in console.
 
@@ -10,7 +10,7 @@ Bug when importing public profile: `undefined` is set to secrets, needs empty st
 
 gpt-4o-mini for free: Let's make it free for everyone and make it the default, up until x requests per day.
 
-Layout: Add the A logo
+Layout: Add the 'A' logo
 
 # Tools with instant prompt and codeblock input
 
@@ -41,3 +41,9 @@ For this, maybe we can also create a new property `redirectOperationId`. If the 
 # Docs
 
 Ask AI to create a docs for the site, or maybe a tutorial or two, or some example agents. It needs to be made more understandeable and I'm too lazy for that.
+
+# Links from other OpenAPIs
+
+- github -> talk to github, prune files,
+- hackernews -> write tweet
+- actionschema-search -> build, prune
