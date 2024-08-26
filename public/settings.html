@@ -271,25 +271,7 @@
                 .catch(error => console.error('Error importing profiles:', error));
         }
 
-        // Load default profiles if chatProfiles is empty
-        if (Object.keys(chatProfiles).length === 0) {
-            const defaultProfilesUrl = 'https://your-default-profiles-url.com';
-            fetch(defaultProfilesUrl)
-                .then(response => response.json())
-                .then(defaultProfiles => {
-                    chatProfiles = defaultProfiles;
-                    localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
-                    populateProfileSelect();
-                    if (Object.keys(defaultProfiles).length > 0) {
-                        const firstProfileName = Object.keys(defaultProfiles)[0];
-                        settings = defaultProfiles[firstProfileName];
-                        localStorage.setItem('chatSettings', JSON.stringify(settings));
-                        localStorage.setItem('selectedProfile', firstProfileName);
-                        updateSettingsForm();
-                    }
-                })
-                .catch(error => console.error('Error loading default profiles:', error));
-        }
+
     </script>
 </body>
 
