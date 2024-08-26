@@ -381,7 +381,6 @@ export const POST = async (request: Request) => {
 
   console.log("entered", {
     access_token,
-
     llmSecret,
     basePath,
     openapiUrl,

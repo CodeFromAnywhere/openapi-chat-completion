@@ -137,12 +137,12 @@
 
         // Update settings in the form
         function updateSettingsForm() {
-            document.getElementById('apiKey').value = settings.apiKey;
-            document.getElementById('model').value = settings.model;
-            document.getElementById('basePath').value = settings.basePath;
-            document.getElementById('systemPrompt').value = settings.systemPrompt;
-            document.getElementById('xOpenapiSecret').value = settings.xOpenapiSecret;
-            document.getElementById('openapiUrl').value = settings.openapiUrl;
+            document.getElementById('apiKey').value = settings.apiKey || '';
+            document.getElementById('model').value = settings.model || '';
+            document.getElementById('basePath').value = settings.basePath || '';
+            document.getElementById('systemPrompt').value = settings.systemPrompt || '';
+            document.getElementById('xOpenapiSecret').value = settings.xOpenapiSecret || '';
+            document.getElementById('openapiUrl').value = settings.openapiUrl || '';
         }
 
         function saveSettings() {

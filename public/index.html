@@ -190,11 +190,7 @@
         // Function to stream response from API
         async function streamResponse(userPrompt) {
 
-            if (!settings.apiKey || settings.apiKey.trim() === "") {
-                alert("Before you can start, add an API key in settings");
-                window.location.href = 'settings.html';
-                return;
-            }
+
 
             isLoading = true;
             isHosted = false;
@@ -211,13 +207,22 @@
 
             try {
                 const openapiSuffix = settings.openapiUrl ? `?openapiUrl=${encodeURIComponent(settings.openapiUrl)}` : '';
+
+                const headers = new Headers({
+                    'Content-Type': 'application/json',
+                })
+
+                if (settings.apiKey && settings.apiKey.trim() !== "") {
+                    headers.append("Authorization", `Bearer ${settings.apiKey}`);
+                }
+
+                if (settings.xOpenapiSecret && settings.xOpenapiSecret.trim() !== "") {
+                    headers.append('X-OPENAPI-SECRET', settings.xOpenapiSecret);
+                }
+
                 const res = await fetch(`/chat/completions${openapiSuffix}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': !settings.apiKey || settings.apiKey.trim() === "" ? undefined : `Bearer ${settings.apiKey}`,
-                        'X-OPENAPI-SECRET': settings.xOpenapiSecret,
-                    },
+                    headers,
                     body: JSON.stringify({
                         basePath: settings.basePath,
                         model: settings.model,
@@ -228,6 +233,14 @@
                         stream: true
                     })
                 });
+
+                if (res.status === 429) {
+                    alert("You have made too many requests. Please add an API key in settings");
+                    window.location.href = 'settings.html';
+                    return;
+                }
+
+
 
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
