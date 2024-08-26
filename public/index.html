@@ -18,6 +18,9 @@
                 </h2>
             </div>
             <div class="mb-4 flex flex-row gap-4 justify-center items-center">
+                <select id="profileSelect" class="bg-white border rounded px-3 py-2">
+                    <option value="">Select Profile</option>
+                </select>
                 <a href="settings.html" class="bg-blue-500 text-white px-4 py-2 rounded">
                     <i class="fas fa-cog mr-2"></i>Settings
                 </a>
@@ -76,6 +79,32 @@
         // All queryparams will be added as settings, including remix and system. We can show them in settings too, maybe.
         Array.from(urlParams.entries()).map(([key, value]) => settings[key] = value)
         localStorage.setItem('chatSettings', JSON.stringify(settings));
+
+        // Initialize profiles
+        let profiles = JSON.parse(localStorage.getItem('chatProfiles')) || {};
+
+        // Populate profile select
+        function populateProfileSelect() {
+            const profileSelect = document.getElementById('profileSelect');
+            profileSelect.innerHTML = '<option value="">Select Profile</option>';
+            for (const profileName in profiles) {
+                const option = document.createElement('option');
+                option.value = profileName;
+                option.textContent = profileName;
+                profileSelect.appendChild(option);
+            }
+        }
+
+        populateProfileSelect();
+
+        // Event listener for profile select
+        document.getElementById('profileSelect').addEventListener('change', (e) => {
+            const selectedProfile = e.target.value;
+            if (selectedProfile && profiles[selectedProfile]) {
+                localStorage.setItem('chatSettings', JSON.stringify(profiles[selectedProfile]));
+                location.href = '/'
+            }
+        });
 
         // Check for remix parameter
         const remixUrl = urlParams.get('remix');

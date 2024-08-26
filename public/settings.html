@@ -65,8 +65,8 @@
                 <textarea id="systemPrompt" class="w-full border p-2 rounded" rows="4"></textarea>
             </div>
 
-            <div class="flex justify-end gap-4">
-
+            <div class="flex justify-end gap-4 items-center">
+                <input type="text" id="profileName" placeholder="Profile Name" class="border p-2 rounded">
                 <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
             </div>
         </div>
@@ -104,13 +104,24 @@
 
             const url = baseUrl + params.toString();
 
+            settings.apiKey = document.getElementById('apiKey').value;
+            settings.model = document.getElementById('model').value;
+            settings.basePath = document.getElementById('basePath').value;
             settings.systemPrompt = document.getElementById('systemPrompt').value;
+            settings.xOpenapiSecret = document.getElementById('xOpenapiSecret').value;
+            settings.openapiUrl = document.getElementById('openapiUrl').value;
+
             localStorage.setItem('chatSettings', JSON.stringify(settings));
+
+            const profileName = document.getElementById('profileName').value;
+            if (profileName) {
+                let chatProfiles = JSON.parse(localStorage.getItem('chatProfiles')) || {};
+                chatProfiles[profileName] = settings;
+                localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
+            }
 
             window.location.href = url;
         }
-
-
 
         // Event listeners for model buttons
         document.querySelectorAll('.modelBtn').forEach(btn => {
@@ -125,8 +136,6 @@
                 document.getElementById('basePath').value = btn.textContent;
             });
         });
-
-
 
         // Event listener for save button
         document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
