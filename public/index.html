@@ -436,7 +436,16 @@
 
         document.getElementById("userPrompt").focus()
         document.getElementById("systemPromptInfo").onclick = () => alert(settings.systemPrompt);
-        document.getElementById("toolInfo").onclick = () => alert(`OpenAPI: ${settings.openapiUrl || "NONE"}`);
+        document.getElementById("toolInfo").onclick = () => {
+            if (settings.openapiUrl && settings.openapiUrl.trim() !== "") {
+                window.location.href = `https://www.actionschema.com/search.html?tab=reference&openapiUrl=${encodeURIComponent(settings.openapiUrl)}`
+            } else {
+                let yes = confirm("Not using any tools right now. Want to look for some tools?");
+                if (yes) {
+                    window.location.href = "https://actionschema.com"
+                }
+            }
+        };
 
 
     </script>
