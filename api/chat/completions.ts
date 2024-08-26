@@ -174,7 +174,7 @@ export const GET = async (request: Request) => {
   const accept = request.headers.get("Accept");
 
   if (accept?.startsWith("text/html")) {
-    const page = !openapiUrl ? "/explore.html" : "/chat.html";
+    const page = "/index.html";
     // default for browsers, ensuring we get html for browsers, openapi otherwise
     const template = await fetch(new URL(request.url).origin + page).then(
       (res) => res.text(),
