@@ -49,6 +49,9 @@
             <div class="mb-4">
                 <label for="openapiUrl" class="block mb-2">OpenAPI URL (Tools for Chat Completion):</label>
                 <input type="text" id="openapiUrl" class="w-full border p-2 rounded">
+                <div class="mt-2 text-sm">
+                    <a href="https://actionschema.com" target="_blank" class="text-blue-500 mr-2">Find one</a>
+                </div>
             </div>
 
             <div class="mb-4">
@@ -62,7 +65,9 @@
                 <textarea id="systemPrompt" class="w-full border p-2 rounded" rows="4"></textarea>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-4">
+                <button id="getUrlBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Get URL</button>
+
                 <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
             </div>
         </div>
@@ -101,6 +106,29 @@
             window.location.href = 'index.html'
         }
 
+        function getAndCopyUrl() {
+            const baseUrl = 'https://chat.actionschema.com?';
+            const params = new URLSearchParams({
+                model: settings.model,
+                basePath: settings.basePath,
+                xOpenapiSecret: settings.xOpenapiSecret,
+                openapiUrl: settings.openapiUrl
+            });
+
+            const url = baseUrl + params.toString();
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy URL. Please try again.');
+            });
+        }
+
+        document.getElementById('getUrlBtn').addEventListener('click', getAndCopyUrl);
+
+
         // Event listeners for model buttons
         document.querySelectorAll('.modelBtn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -114,6 +142,8 @@
                 document.getElementById('basePath').value = btn.textContent;
             });
         });
+
+
 
         // Event listener for save button
         document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);

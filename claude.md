@@ -6,23 +6,21 @@
 
 ✅ Make the universal `/chat/completions` available at https://chat.actionschema.com with the same interface at the front as anthropic.
 
-Add an API key for each provider
+✅ Add an API key for each provider
 
-Add ability to set custom provider url + key
+✅ Add ability to set custom provider url + key
 
-Based on model selection, select the right provider
+✅ Based on model selection, select the right provider
 
-Test chat.actionschema.com locally on each provider
+✅ Greatly simplify and generalise the UI
 
-Figure out the best way to ratelimit each provider independently.
+❌ Figure out the best way to ratelimit each provider independently. Allow customisation in ratelimits on a per-model per-ip, and per-user basis, offering a very large free tier for tiny models, that can be overwritten (made smaller) by downstream endpoints. **Just keep it free for now**
+
+Test chat.actionschema.com locally on each provider. chat.actionschema.com should be the goto place better than anthropic.actionschema.com.
 
 Add executed tool use into the message as markdown codeblocks: input + output
 
 Think about a way to maybe also allow for streaming deltas of downstream streaming APIs
-
-Allow customisation in ratelimits on a per-model per-ip, and per-user basis, offering a very large free tier for tiny models, that can be overwritten (made smaller) by downstream endpoints.
-
-chat.actionschema.com should be the goto place better than anthropic.actionschema.com
 
 Maybe we need to introduce a new primitive, so that agent stacking becomes viable. Imagine your agent having a conversation with another agent. How to show this? How to structure this data? Cool idea! Maybe it can be done with simplified API
 

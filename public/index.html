@@ -58,7 +58,6 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const openapiUrlParam = urlParams.get('openapiUrl');
 
         // Initialize settings
         const defaultSettings = {
@@ -75,8 +74,33 @@
         let settings = JSON.parse(localStorage.getItem('chatSettings')) || defaultSettings;
 
         // If openapiUrl is in the query parameter, overwrite settings and update localStorage
+        const openapiUrlParam = urlParams.get('openapiUrl');
         if (openapiUrlParam) {
             settings.openapiUrl = openapiUrlParam;
+            localStorage.setItem('chatSettings', JSON.stringify(settings));
+        }
+
+        const xOpenapiSecretParam = urlParams.get('xOpenapiSecret');
+        if (xOpenapiSecretPararm) {
+            settings.xOpenapiSecret = xOpenapiSecretParam;
+            localStorage.setItem('chatSettings', JSON.stringify(settings));
+        }
+
+        const apiKeyParam = urlParams.get('apiKey');
+        if (apiKeyParam) {
+            settings.apiKey = apiKeyParam;
+            localStorage.setItem('chatSettings', JSON.stringify(settings));
+        }
+
+        const modelParam = urlParams.get('model');
+        if (modelParam) {
+            settings.model = modelParam;
+            localStorage.setItem('chatSettings', JSON.stringify(settings));
+        }
+
+        const basePathParam = urlParams.get('basePathParam');
+        if (basePathParam) {
+            settings.basePath = basePathParam;
             localStorage.setItem('chatSettings', JSON.stringify(settings));
         }
 
