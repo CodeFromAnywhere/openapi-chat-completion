@@ -26,10 +26,10 @@
 
 ✅ Create profile creator and selector allowing you to easily see which settings are applied and keep track of multiple settings
 
-'Publish profiles' can use `content.actionschema.com/set` to retrieve a URL containing a JSON of your profiles. It could navigate there with window.location.href={url}
+✅ 'Publish profiles' can use `content.actionschema.com/set` to retrieve a URL containing a JSON of your profiles. It could navigate there with window.location.href={url}
 
-`?profiles={url}` should contain a JSON. if so, it should load in a set of profiles from someone else merging it with your current profiles at `chatProfiles`
+✅ `?profiles={url}` should contain a JSON. if so, it should load in a set of profiles from someone else merging it with your current profiles at `chatProfiles`
 
-An ability to remove profiles easily will be great. For this, the profile selector needs to be added on settings to switch profile just like in index. A 'delete profile' button next to the selector shall delete the key from chatProfiles, and set currentProfile to the next option, and refresh the page.
+✅ An ability to remove profiles easily will be great. For this, the profile selector needs to be added on settings to switch profile just like in index. A 'delete profile' button next to the selector shall delete the key from chatProfiles, and set currentProfile to the next option, and refresh the page.
 
-When chatProfiles is not set yet, load in profiles from a hardcoded URL and select the first one. That url is to be given.
+✅ When chatProfiles is not set yet, load in profiles from a hardcoded URL and select the first one. That url is to be given.

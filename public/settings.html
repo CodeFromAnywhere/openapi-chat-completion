@@ -14,14 +14,23 @@
         <h1 class="text-3xl font-bold mb-4">Chat Completions API Settings</h1>
 
         <div class="bg-white p-5 border rounded-md shadow-lg">
-            <div class="mb-4 flex justify-between items-center">
+            <div class="mb-4 flex justify-between items-center flex-wrap">
                 <h3 class="text-lg font-bold">Settings</h3>
-                <div class="flex items-center">
+                <div class="flex items-center flex-wrap">
                     <select id="profileSelect" class="border p-2 rounded mr-2">
                         <option value="">Select Profile</option>
                     </select>
-                    <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded">Delete
+                    <button id="deleteProfileBtn" class="bg-red-500 mr-2 text-white px-4 py-2 rounded mb-2">Delete
                         Profile</button>
+                    <button onclick="exportProfiles(true)"
+                        class="bg-blue-500 text-white px-4 py-2 rounded mr-2 mb-2">Export
+                        Profiles</button>
+                    <button onclick="exportProfiles(false)"
+                        class="bg-green-500 text-white px-4 py-2 rounded mr-2 mb-2">Publish
+                        Profiles</button>
+                    <button id="importProfilesBtn" class="bg-yellow-500 text-white px-4 mb-2 py-2 rounded">Import
+                        Profiles</button>
+
                 </div>
             </div>
             <div class="mb-4">
@@ -74,17 +83,12 @@
                 <textarea id="systemPrompt" class="w-full border p-2 rounded" rows="4"></textarea>
             </div>
 
-            <div class="flex justify-between items-center">
+            <div class="flex justify-end items-center">
                 <div>
                     <input type="text" id="profileName" placeholder="Profile Name" class="border p-2 rounded mr-2">
                     <button id="saveSettingsBtn" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
                 </div>
-                <div>
-                    <button id="publishProfilesBtn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Publish
-                        Profiles</button>
-                    <button id="importProfilesBtn" class="bg-yellow-500 text-white px-4 py-2 rounded">Import
-                        Profiles</button>
-                </div>
+
             </div>
         </div>
     </div>
@@ -212,13 +216,19 @@
             }
         });
 
-        // Event listener for publish profiles button
-        document.getElementById('publishProfilesBtn').addEventListener('click', async () => {
+        const exportProfiles = async (includeCredentials) => {
+
+            const finalChatProfiles = includeCredentials ? chatProfiles : Object.keys(chatProfiles).reduce((previous, key) => {
+                const { apiKey, xOpenapiSecret, ...rest } = chatProfiles[key]
+                return { ...previous, [key]: rest }
+            }, {})
+
+
             try {
                 const res = await fetch('https://content.actionschema.com/set', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: JSON.stringify(chatProfiles, undefined, 2), extension: "json", prompt: "Export the chat profiles I have", slug: generateRandomString(64) })
+                    body: JSON.stringify({ code: JSON.stringify(finalChatProfiles, undefined, 2), extension: "json", prompt: "Export the chat profiles I have", slug: generateRandomString(64) })
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -229,7 +239,11 @@
             } catch (error) {
                 console.error('Error publishing profiles:', error);
             }
-        });
+        }
+
+
+
+
 
         // Event listener for import profiles button
         document.getElementById('importProfilesBtn').addEventListener('click', () => {
