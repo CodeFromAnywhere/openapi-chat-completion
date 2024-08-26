@@ -86,10 +86,14 @@
         // Populate profile select
         function populateProfileSelect() {
             const profileSelect = document.getElementById('profileSelect');
-            profileSelect.innerHTML = '<option value="">Select Profile</option>';
+
+            profileSelect.innerHTML = `<option value="">Select Profile</option>`;
             for (const profileName in profiles) {
                 const option = document.createElement('option');
                 option.value = profileName;
+                if (profileName === localStorage.getItem("selectedProfile")) {
+                    option.selected = "true"
+                }
                 option.textContent = profileName;
                 profileSelect.appendChild(option);
             }
@@ -102,6 +106,7 @@
             const selectedProfile = e.target.value;
             if (selectedProfile && profiles[selectedProfile]) {
                 localStorage.setItem('chatSettings', JSON.stringify(profiles[selectedProfile]));
+                localStorage.setItem('selectedProfile', selectedProfile);
                 location.href = '/'
             }
         });
