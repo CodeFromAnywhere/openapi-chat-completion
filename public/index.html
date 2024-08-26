@@ -336,7 +336,7 @@
         adjustTextareaHeight(); // Initial adjustment
 
         // Load default profiles if chatProfiles is empty
-        if (Object.keys(chatProfiles).length === 0) {
+        if (Object.keys(profiles).length === 0) {
             const defaultProfilesUrl = 'https://content.actionschema.com/FZvVgRtKOfkNvRpmmNgRIFgHDOUaxPMOrWyGKDKRDhqouBQHGBFGrSmVeyHZYHEb.json';
             fetch(defaultProfilesUrl)
                 .then(response => response.json())
@@ -344,11 +344,11 @@
                     chatProfiles = defaultProfiles;
                     localStorage.setItem('chatProfiles', JSON.stringify(chatProfiles));
                     if (Object.keys(defaultProfiles).length > 0) {
-                        populateProfileSelect();
                         const firstProfileName = Object.keys(defaultProfiles)[0];
                         settings = defaultProfiles[firstProfileName];
                         localStorage.setItem('chatSettings', JSON.stringify(settings));
                         localStorage.setItem('selectedProfile', firstProfileName);
+                        location.reload()
                     }
                 })
                 .catch(error => console.error('Error loading default profiles:', error));
