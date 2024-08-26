@@ -229,7 +229,7 @@
                 const res = await fetch('https://content.actionschema.com/set', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: JSON.stringify(finalChatProfiles, undefined, 2), extension: "json", prompt: "Export the chat profiles I have", slug: generateRandomString(64) })
+                    body: JSON.stringify({ code: JSON.stringify(finalChatProfiles, undefined, 2), extension: "json", prompt: "Export the chat profiles I have", slug: generateRandomString(48) })
                 });
                 if (res.ok) {
                     const data = await res.json();
