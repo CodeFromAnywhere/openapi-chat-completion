@@ -208,7 +208,7 @@
                         if (line.startsWith('data:')) {
                             try {
                                 const data = JSON.parse(line.slice(5));
-                                console.log(data)
+                                console.dir(data, { depth: 5 })
                                 if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
                                     response.value += data.choices[0].delta.content;
                                     response.scrollTop = response.scrollHeight;
