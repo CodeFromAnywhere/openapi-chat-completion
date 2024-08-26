@@ -1,17 +1,3 @@
-# A few more improvements
-
-If `?q={msg}` is given, should be immediately executed after applying the other params.
-
-If not, at least the input should auto-focus.
-
-Always: Log deltas in console.
-
-Bug when importing public profile: `undefined` is set to secrets, needs empty string, or leave it if already set.
-
-gpt-4o-mini for free: Let's make it free for everyone and make it the default, up until x requests per day.
-
-Layout: Add the 'A' logo
-
 # Tools with instant prompt and codeblock input
 
 I need a streaming API that goes from prompt to hosted files. Together with a simple fetch api this is a killer coding agent that allows for making a more scalable website.
@@ -37,13 +23,3 @@ For this, maybe we can also create a new property `redirectOperationId`. If the 
 ✅ If we want agents to automatically pick up `redirectOperationId`, `codeblockOperationId` and `promptOperationId`, we could add these into the operation item. Added to the spec!
 
 ❗️ I really want to see a router agent... That would be my new starting point!
-
-# Docs
-
-Ask AI to create a docs for the site, or maybe a tutorial or two, or some example agents. It needs to be made more understandeable and I'm too lazy for that.
-
-# Links from other OpenAPIs
-
-- github -> talk to github, prune files,
-- hackernews -> write tweet
-- actionschema-search -> build, prune

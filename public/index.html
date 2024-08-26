@@ -122,6 +122,15 @@
                 .catch(error => console.error('Error fetching remix content:', error));
         }
 
+        const q = urlParams.get('q');
+        if (q) {
+            const value = decodeURIComponent(q).replaceAll("+", " ");
+            document.getElementById('userPrompt').value = value;
+            isHosted = false;
+            streamResponse(value);
+
+        }
+
         const profilesUrl = urlParams.get('profiles');
         if (profilesUrl) {
             fetch(profilesUrl)
