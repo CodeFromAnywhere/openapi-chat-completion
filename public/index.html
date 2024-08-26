@@ -97,8 +97,8 @@
         // Initialize settings
         const defaultSettings = {
             apiKey: '',
-            model: 'claude-3-5-sonnet-20240620',
-            basePath: "https://anthropic.actionschema.com",
+            model: 'gpt-4o-mini',
+            basePath: "https://api.openai.com/v1",
             systemPrompt: 'Make me a vanilla HTML + TailwindCDN + CSS + JS website with the following requirements:\n\n- everything is always stored as much as possible in localStorage and editable in settings, including api keys (if needed)\n- for icons, use font awesome\n- always respond with a full new HTML page in a codeblock',
             xOpenapiSecret: '',
             openapiUrl: ''
@@ -408,7 +408,7 @@
 
         // Load default profiles if chatProfiles is empty
         if (Object.keys(profiles).length === 0) {
-            const defaultProfilesUrl = 'https://content.actionschema.com/FZvVgRtKOfkNvRpmmNgRIFgHDOUaxPMOrWyGKDKRDhqouBQHGBFGrSmVeyHZYHEb.json';
+            const defaultProfilesUrl = 'https://content.actionschema.com/tdgAwsZFcYwWdtgAlxJLJUAQrpjZadYdoZyIfGEgIcDOggkqnmNYzIQQRCvCEeiy.json';
             fetch(defaultProfilesUrl)
                 .then(response => response.json())
                 .then(defaultProfiles => {
