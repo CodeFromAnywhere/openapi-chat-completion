@@ -1,3 +1,7 @@
+# Make tools work
+
+In `old/chat.html` i had a version that actually worked. However, the one in `index.html` doesn't have tools working anymore. Why is this?
+
 # Tools with instant prompt and codeblock input
 
 I need a streaming API that goes from prompt to hosted files. Together with a simple fetch api this is a killer coding agent that allows for making a more scalable website.
