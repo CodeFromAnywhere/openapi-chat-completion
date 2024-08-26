@@ -36,20 +36,12 @@ With the above tooling, we can now create an agent that orchestrates certain tak
 ## Non-goals
 
 - Testing agents
-- Support for propriatary features like openai code-interpreter or file-search
-
-# TODO
-
-## Dynamic OpenAPI
-
-🔥 Threads get stored independently of openapiUrl, only in localStorage. OpenapiUrl can be re-routed without trouble, making it dynamic while keeping thread as-is.
-
-The url determines the openapi, the openapi determines the tools and authorization. I have already added operationIds, but another very interesting thing would be to embed actionschema search into big openapis, so we only show the most relevant tool(s) based on the messages.
+- Support for propriatary features like openai image generation, code-interpreter or file-search
 
 # Decisions/questions
 
 - Can I make this embeddable using a little circle turning into a sidebar? That would be a very nice add-on
 - Do access token check on frontend as well as on backend? Can be useful UX wise.
 - Shall I allow for additional tools (that aren't executed, but live alongside it)? For now, respond with 'tools need to be supplied over OpenAPI'.
-- Allowed additional header for LLM basePath + secret
 - How do I make sure this thing keeps being a top priority? This seems like a great great value-add
+- Description, image, and conversation starters are helpful things to add to the ux. Not sure if we want this though, as it is more oriented for humans, and the prompt + openapi kind of gives enough info.

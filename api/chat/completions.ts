@@ -370,6 +370,7 @@ export const POST = async (request: Request) => {
       status: 400,
     });
   }
+  const { basePath: _, ...bodyWithoutBasePath } = body;
 
   const basePath = body.basePath || defaultBasePath;
   const llmSecret = Authorization
@@ -466,7 +467,7 @@ export const POST = async (request: Request) => {
 
   const readableStream = await getStream({
     access_token,
-    body,
+    body: bodyWithoutBasePath,
     messages,
     basePath,
     llmSecret,
