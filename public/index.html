@@ -408,7 +408,7 @@
 
         // Load default profiles if chatProfiles is empty
         if (Object.keys(profiles).length === 0) {
-            const defaultProfilesUrl = 'https://yrabvjycpdomjlrbsxohlvozwookosqdfchmrmrqypozjjnn.gptideas.com/yrabvjycpdomjlrbsxohlvozwookosqdfchmrmrqypozjjnn.json';
+            const defaultProfilesUrl = '/settings.json';
             fetch(defaultProfilesUrl)
                 .then(response => response.json())
                 .then(defaultProfiles => {
