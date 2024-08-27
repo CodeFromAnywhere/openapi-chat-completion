@@ -8,6 +8,12 @@ RRRRRReeeeeallly powerful for creating new agents for people. Things become so m
 
 Let's do this as a remix of my repo once I get there!
 
+Also: `curl https://chat.actionschema.com/chat/completions?openapiUrl=https://github.actionschema.com/CodeFromAnywhere/github-registry/openapi.json` puts the openapi in the server. This cannot be done if it contains a `?` or at least, that's super tricky I guess.
+
+Maybe we can still make a catchall so it DOES work with the encoded URL as prefix, still allowing for any path.
+
+But making a slug -> profile also possible is definitely powerful.
+
 # Make tools work
 
 In `old/chat.html` i had a version that actually worked. However, the one in `index.html` doesn't have tools working anymore. Why is this?
