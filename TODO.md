@@ -1,3 +1,13 @@
+# Hide implementation for foundation model creation.
+
+OpenAPIs are now open and exposed to the user. This is extremely powerful, but it's possible to hide and create a basemodel too. All we need to do is create a kv store that maps a slug to the openapi (and partial profile), and then it's a matter of using https://chat.actionschema.com/{slug} as a basepath. From here you can chat with it, and https://chat.actionschema.com/{slug}/chat/completions and https://chat.actionschema.com/{slug}/openapi.json would be available too.
+
+This adds complexity, but also cleans up the interface a lot, and creates a lot of IP for the creator of the agent. Maybe even including the API key! Nevertheless we can still link to the openapi for the free version...
+
+RRRRRReeeeeallly powerful for creating new agents for people. Things become so much simpler!
+
+Let's do this as a remix of my repo once I get there!
+
 # Make tools work
 
 In `old/chat.html` i had a version that actually worked. However, the one in `index.html` doesn't have tools working anymore. Why is this?
