@@ -1,20 +1,21 @@
 import { ChatCompletionExtension, ChatCompletionInput } from "../types";
-import { chatCompletionSecrets } from "./util";
-
-export const config = { runtime: "edge" };
 
 /** Simple get endpoint to test a stream of a model and see the result in the browser */
-export const GET = async (request: Request) => {
+export const raw = async (request: Request) => {
   const url = new URL(request.url);
   const q = url.searchParams.get("q");
-  const openapiUrl = url.searchParams.get("openapiUrl");
+
+  // the first part can contain the openapiUrl, but if it's just 'chat', we omit openapiUrl
+  const [id, ...rest] = url.pathname.slice(1).split("/");
+  const path = id === "chat" ? "chat/" + rest.join("/") : rest.join("/");
+  const openapiUrl = id === "chat" ? null : decodeURIComponent(id);
+  const openapiPrefix = openapiUrl ? encodeURIComponent(openapiUrl) + "/" : "";
 
   if (!q) {
     return new Response("Provide a message", { status: 422 });
   }
 
-  const openapiSuffix = openapiUrl ? `?openapiUrl=${openapiUrl}` : "";
-  const chatCompletionUrl = `${url.origin}/chat/completions${openapiSuffix}`;
+  const chatCompletionUrl = `${url.origin}/${openapiPrefix}chat/completions`;
 
   const body: ChatCompletionInput & ChatCompletionExtension = {
     messages: [{ role: "user", content: q }],

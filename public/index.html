@@ -100,6 +100,10 @@
     </div>
 
     <script>
+        //replaced by script
+        const data = {};
+
+
 
         // Add these variables at the beginning of your script
         let userHasScrolled = false;
@@ -242,7 +246,6 @@
             hostedContentUrl = null;
 
             try {
-                const openapiSuffix = settings.openapiUrl ? `?openapiUrl=${encodeURIComponent(settings.openapiUrl)}` : '';
 
                 const headers = new Headers({
                     'Content-Type': 'application/json',
@@ -256,7 +259,9 @@
                     headers.append('X-OPENAPI-SECRET', settings.xOpenapiSecret);
                 }
 
-                const res = await fetch(`/chat/completions${openapiSuffix}`, {
+
+
+                const res = await fetch(`/${encodeURIComponent(data.openapiUrl || settings.openapiUrl)}/chat/completions`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({

@@ -1,5 +1,4 @@
-import { jsonGetter } from "edge-util";
-import { Usage } from "../public/usage";
+import { Usage } from "../../public/usage";
 
 export const chatCompletionProviders = {
   groq: {
@@ -76,5 +75,3 @@ export const calculateCost = <
   const total_cost = prompt_cost + output_cost;
   return { prompt_cost, output_cost, total_cost };
 };
-
-export const GET = jsonGetter(calculateCost);

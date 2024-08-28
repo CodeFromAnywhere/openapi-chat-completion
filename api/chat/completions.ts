@@ -15,9 +15,6 @@ import {
 import { chatCompletionSecrets } from "./util.js";
 import { slugify } from "edge-util";
 
-// can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
-//export const config = { runtime: "edge" };
-
 const createDeltaString = (model: string, message: string) => {
   const delta: ChatCompletionChunk = {
     id: "",
@@ -166,60 +163,6 @@ const streamLlmResponse = async (
   return { accumulatedMessage, toolCalls };
 };
 
-/**
- * Expose the OpenAPI at root, only changing the server and path so it's used right.
- */
-export const GET = async (request: Request) => {
-  const openapiUrl = new URL(request.url).searchParams.get("openapiUrl");
-  console.log(openapiUrl);
-  const accept = request.headers.get("Accept");
-
-  if (accept?.startsWith("text/html")) {
-    const page = "/index.html";
-    // default for browsers, ensuring we get html for browsers, openapi otherwise
-    const template = await fetch(new URL(request.url).origin + page).then(
-      (res) => res.text(),
-    );
-    const data = { hello: "world" };
-    const html = template.replaceAll(
-      "const data = {}",
-      `const data = ${JSON.stringify(data)}`,
-    );
-    return new Response(html, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html",
-        // "Cache-Control": "max-age=60, s-maxage=60",
-      },
-    });
-  }
-
-  if (!openapiUrl) {
-    return new Response("Please put an openapiUrl in your pathname", {
-      status: 422,
-    });
-  }
-
-  const targetOpenapi = await fetchOpenapi(openapiUrl);
-  if (!targetOpenapi || !targetOpenapi.paths) {
-    return new Response("OpenAPI not found", { status: 404 });
-  }
-
-  const originUrl = new URL(request.url).origin;
-  const agentOpenapi = await fetch(originUrl + `/openapi.json`).then((res) =>
-    res.json(),
-  );
-  agentOpenapi.servers[0].url = originUrl + `/` + openapiUrl;
-  agentOpenapi.paths = {
-    "/chat/completions": agentOpenapi.paths["/chat/completions"],
-  };
-
-  return new Response(JSON.stringify(agentOpenapi, undefined, 2), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
-};
-
 const getStream = async (
   context: StreamContext,
 ): Promise<{
@@ -356,13 +299,17 @@ const getStream = async (
 
 const defaultBasePath = Object.keys(chatCompletionSecrets)[0];
 
-export const POST = async (request: Request) => {
+export const completions = async (request: Request) => {
   const openapiSecret = request.headers.get("X-OPENAPI-SECRET");
   const access_token = openapiSecret || undefined;
   // for now, must be forced through a header
   const Authorization = request.headers.get("Authorization");
   const url = new URL(request.url);
-  const openapiUrl = url.searchParams.get("openapiUrl");
+
+  // the first part can contain the openapiUrl, but if it's just 'chat', we omit openapiUrl
+  const [id, ...rest] = url.pathname.slice(1).split("/");
+  const path = id === "chat" ? "chat/" + rest.join("/") : rest.join("/");
+  const openapiUrl = id === "chat" ? null : decodeURIComponent(id);
 
   const body: ChatCompletionInput & ChatCompletionExtension =
     await request.json();

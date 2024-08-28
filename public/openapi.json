@@ -8,7 +8,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/calculate-cost": {
+    "/chat/calculate-cost": {
       "get": {
         "summary": "Calculate cost of AI model usage",
         "description": "Calculates the cost of using an AI model based on the provider, model, and token usage.",
@@ -103,46 +103,14 @@
         }
       }
     },
+    "/chat/simple": {},
+    "/chat/raw": {},
     "/chat/completions": {
-      "get": {
-        "operationId": "getBaseOpenapi",
-        "parameters": [
-          {
-            "in": "query",
-            "required": false,
-            "name": "openapiUrl",
-            "schema": { "type": "string" },
-            "description": "The openapiUrl of the tools"
-          }
-        ],
-        "responses": {
-          "404": { "description": "Not found" },
-          "422": { "description": "Invalid params" },
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "https://ref.actionschema.com/openapi.json"
-                }
-              }
-            }
-          }
-        }
-      },
-
       "post": {
         "operationId": "createChatCompletion",
         "security": [{}, { "llm": [] }, { "oauth2": [] }],
         "summary": "Creates a model response for the given chat conversation.",
         "parameters": [
-          {
-            "in": "query",
-            "required": false,
-            "name": "openapiUrl",
-            "schema": { "type": "string" },
-            "description": "The openapiUrl of the tools"
-          },
           {
             "in": "header",
             "name": "X-USER-ID",

@@ -3,9 +3,7 @@ import {
   ChatCompletionExtension,
   ChatCompletionInput,
 } from "../types";
-import { defaultModel } from "./util";
-
-export const config = { runtime: "edge" };
+import { defaultModel } from "./util.js";
 
 const getSimpleResponse = async (context: {
   q: string | null;
@@ -85,19 +83,24 @@ const getSimpleResponse = async (context: {
     },
   });
 };
-export const POST = async (request: Request) => {
+export const getSimpleResponsePostRequest = async (request: Request) => {
   const url = new URL(request.url);
   const model = url.searchParams.get("model");
   const context = await request.json();
   return getSimpleResponse({ ...context, originUrl: url.origin, model });
 };
 
-export const GET = async (request: Request) => {
+export const getSimpleResponseGetRequest = async (request: Request) => {
   const url = new URL(request.url);
+  // the first part can contain the openapiUrl, but if it's just 'chat', we omit openapiUrl
+  const [id, ...rest] = url.pathname.slice(1).split("/");
+  const path = id === "chat" ? "chat/" + rest.join("/") : rest.join("/");
+  const openapiUrl = id === "chat" ? null : decodeURIComponent(id);
+
   const model = url.searchParams.get("model");
   const basePath = url.searchParams.get("basePath");
   const q = url.searchParams.get("q");
-  const openapiUrl = url.searchParams.get("openapiUrl");
+
   return getSimpleResponse({
     model,
     openapiUrl,

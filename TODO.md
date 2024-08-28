@@ -2,10 +2,11 @@
 
 - ✅ See tool progress as text completion result
 - ✅ tools groq
-- Tools anthropic
-- Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
+- ✅ Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
 - ✅ Can't scroll up while generating completions
 - ✅ When going to another agent, I loose my input text
+- Long tool output is buggy, sometimes JSON parse error
+- Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
 
 # Hide implementation for foundation model creation.
 
