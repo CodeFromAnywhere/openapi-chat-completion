@@ -261,7 +261,11 @@
 
 
 
-                const res = await fetch(`/${encodeURIComponent(data.openapiUrl || settings.openapiUrl)}/chat/completions`, {
+                const finalOpenapiUrl = data.openapiUrl || settings.openapiUrl;
+
+                const openapiPrefix = finalOpenapiUrl ? `/${encodeURIComponent(finalOpenapiUrl)}` : ""
+
+                const res = await fetch(`${openapiPrefix}/chat/completions`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
