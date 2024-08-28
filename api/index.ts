@@ -6,7 +6,7 @@ import {
   getSimpleResponseGetRequest,
   getSimpleResponsePostRequest,
 } from "./chat/simple.js";
-import { completions } from "./chat/completions";
+import { completions } from "./chat/completions.js";
 
 // can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
 //export const config = { runtime: "edge" };
