@@ -5,7 +5,7 @@
 - Tools anthropic
 - Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
 - ✅ Can't scroll up while generating completions
-- When going to another agent, I loose my input text
+- ✅ When going to another agent, I loose my input text
 
 # Hide implementation for foundation model creation.
 

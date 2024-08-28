@@ -13,6 +13,7 @@ import {
   FullToolCallDelta,
 } from "../types.js";
 import { chatCompletionSecrets } from "./util.js";
+import { slugify } from "edge-util";
 
 // can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
 //export const config = { runtime: "edge" };
@@ -442,10 +443,11 @@ export const POST = async (request: Request) => {
         const fullDescription = summary
           ? summary + "\n\n"
           : "" + description || "";
+
         return {
           type: "function",
           function: {
-            name: operationId,
+            name: slugify(operationId),
             description: fullDescription,
             parameters: input,
           },
