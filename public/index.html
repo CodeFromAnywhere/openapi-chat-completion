@@ -297,9 +297,9 @@
                                         if (call.function?.name) {
                                             response.value += `\n\n⚡️ Using ${call.function.name}\n`;
 
-                                            toolcallIds[call.id] = call.index;
+                                            toolcallIds[call.index] = call.id;
 
-                                            toolcallState[call.index] = call.function.name + "(";
+                                            toolcallState[call.id] = call.function.name + "(";
 
 
                                             intervalId = setInterval(() => {
@@ -322,7 +322,9 @@
                                         }
 
                                         if (call.function?.arguments) {
-                                            toolcallState[call.index] += call.function.arguments;
+                                            const id = toolcallIds[call.index]
+
+                                            toolcallState[id] += call.function.arguments;
                                         }
 
 
@@ -336,8 +338,7 @@
                                     }
 
                                     tools.map(tool => {
-                                        const index = toolcallIds[tool.tool_call_id]
-                                        toolcallState[index] += ') => ' + tool.content
+                                        toolcallState[tool.tool_call_id] += ') => ' + tool.content
                                     })
 
                                     console.log('tool response length', JSON.stringify(tools).length);
