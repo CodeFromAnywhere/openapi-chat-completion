@@ -5,26 +5,19 @@
 - ✅ Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
 - ✅ Can't scroll up while generating completions
 - ✅ When going to another agent, I loose my input text
+- After the openapiUrl refactor, tool use is buggy.
 - Long tool output is buggy, sometimes JSON parse error
 - Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
+
+# Internal: `openapi-chat-completion`
+
+🤔🔥 `openapi-chat-completion` is an internal tool behind login without state. `openapi-agent` can become one a profile registry on top of it, adding state, exposed at https://agent.actionschema.com/{slug} baseUrl.
 
 # Hide implementation for foundation model creation.
 
 OpenAPIs are now open and exposed to the user. This is extremely powerful, but it's possible to hide and create a basemodel too. All we need to do is create a kv store that maps a slug to the openapi (and partial profile), and then it's a matter of using https://chat.actionschema.com/{slug} as a basepath. From here you can chat with it, and https://chat.actionschema.com/{slug}/chat/completions and https://chat.actionschema.com/{slug}/openapi.json would be available too.
 
 This adds complexity, but also cleans up the interface a lot, and creates a lot of IP for the creator of the agent. Maybe even including the API key! Nevertheless we can still link to the openapi for the free version...
-
-RRRRRReeeeeallly powerful for creating new agents for people. Things become so much simpler!
-
-Let's do this as a remix of my repo once I get there!
-
-Also: `curl https://chat.actionschema.com/chat/completions?openapiUrl=https://github.actionschema.com/CodeFromAnywhere/github-registry/openapi.json` puts the openapi in the server. This cannot be done if it contains a `?` or at least, that's super tricky I guess.
-
-Maybe we can still make a catchall so it DOES work with the encoded URL as prefix, still allowing for any path.
-
-But making a slug -> profile also possible is definitely powerful.
-
-🤔🔥 `openapi-chat-completion` is an internal tool behind login without state. `openapi-agent` can become one a profile registry on top of it, adding state, exposed at https://agent.actionschema.com/{slug} baseUrl.
 
 Create a fully private agent-setup as a public config-file. User only sees https://boardapp.nl/chat/{bedrijf}
 

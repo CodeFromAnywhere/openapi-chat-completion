@@ -125,6 +125,14 @@
             "schema": { "type": "string" },
             "required": false,
             "description": "Force overwrite OpenAPI Secret, bypassing ActionSchema Auth"
+          },
+
+          {
+            "in": "header",
+            "name": "X-BASEPATH",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Use another basepath for the LLM."
           }
         ],
         "requestBody": {

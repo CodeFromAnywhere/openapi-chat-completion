@@ -318,9 +318,9 @@ export const completions = async (request: Request) => {
       status: 400,
     });
   }
-  const { basePath: _, ...bodyWithoutBasePath } = body;
 
-  const basePath = body.basePath || defaultBasePath;
+  const basePath = request.headers.get("X-BASEPATH") || defaultBasePath;
+
   const llmSecret = Authorization
     ? Authorization.slice("Bearer ".length)
     : chatCompletionSecrets[basePath as keyof typeof chatCompletionSecrets];
@@ -415,7 +415,7 @@ export const completions = async (request: Request) => {
 
   const readableStream = await getStream({
     access_token,
-    body: bodyWithoutBasePath,
+    body,
     messages,
     basePath,
     llmSecret,

@@ -259,7 +259,9 @@
                     headers.append('X-OPENAPI-SECRET', settings.xOpenapiSecret);
                 }
 
-
+                if (settings.basePath && settings.basePath.trim() !== "") {
+                    headers.append('X-BASEPATH', settings.basePath);
+                }
 
                 const finalOpenapiUrl = data.openapiUrl || settings.openapiUrl;
 
@@ -269,7 +271,6 @@
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        basePath: settings.basePath,
                         model: settings.model,
                         messages: [
                             { role: 'system', content: settings.systemPrompt },
