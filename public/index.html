@@ -100,6 +100,27 @@
     </div>
 
     <script>
+
+        // Add these variables at the beginning of your script
+        let userHasScrolled = false;
+        let responseTextarea;
+
+        // Add this function to your existing code
+        function setupScrollBehavior() {
+            responseTextarea = document.getElementById('response');
+            responseTextarea.addEventListener('scroll', handleScroll);
+        }
+
+        function handleScroll() {
+            const { scrollTop, scrollHeight, clientHeight } = responseTextarea;
+            // Check if the user has scrolled up
+            if (scrollTop < scrollHeight - clientHeight - 10) {
+                userHasScrolled = true;
+            } else {
+                userHasScrolled = false;
+            }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
 
         // Initialize settings
@@ -161,6 +182,11 @@
                     document.getElementById('userPrompt').value = content;
                 })
                 .catch(error => console.error('Error fetching remix content:', error));
+        } else {
+            const userPrompt = window.sessionStorage.getItem("userPrompt");
+            if (userPrompt) {
+                document.getElementById('userPrompt').value = userPrompt
+            }
         }
 
 
@@ -201,7 +227,7 @@
         async function streamResponse(userPrompt) {
 
 
-
+            userHasScrolled = false; // Reset scroll tracking
             isLoading = true;
             isHosted = false;
             document.getElementById('submitIcon').className = "fas fa-circle-notch fa-spin mr-2"
@@ -277,8 +303,9 @@
                                 if (data.choices?.[0]?.delta?.content) {
                                     response.value += data.choices[0].delta.content;
 
-                                    response.scrollTop = response.scrollHeight;
-
+                                    if (!userHasScrolled) {
+                                        response.scrollTop = response.scrollHeight;
+                                    }
                                     checkForCodeBlocks();
                                 }
 
@@ -297,6 +324,9 @@
                                         if (call.function?.name) {
                                             response.value += `\n\n⚡️ Using ${call.function.name}\n`;
 
+                                            if (!userHasScrolled) {
+                                                response.scrollTop = response.scrollHeight;
+                                            }
                                             toolcallIds[call.index] = call.id;
 
                                             toolcallState[call.id] = call.function.name + "(";
@@ -345,6 +375,9 @@
 
                                     response.value += `${doneEmoji} (response size: ${JSON.stringify(tools).length} characters)\n\n\n`;
 
+                                    if (!userHasScrolled) {
+                                        response.scrollTop = response.scrollHeight;
+                                    }
 
 
                                     console.log('tools', tools);
@@ -526,6 +559,11 @@
         }
 
         document.getElementById("userPrompt").focus()
+        document.getElementById("userPrompt").oninput = (evt) => {
+            // keep the value in the input box when swichting, but only in this tab
+            window.sessionStorage.setItem("userPrompt", evt.target.value)
+        }
+
         document.getElementById("systemPromptInfo").onclick = () => alert(settings.systemPrompt);
         document.getElementById("toolInfo").onclick = () => {
             if (settings.openapiUrl && settings.openapiUrl.trim() !== "") {
@@ -538,6 +576,7 @@
             }
         };
 
+        document.addEventListener('DOMContentLoaded', setupScrollBehavior);
 
     </script>
 </body>

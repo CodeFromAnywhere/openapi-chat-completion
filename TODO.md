@@ -1,10 +1,10 @@
 # Chat stability
 
-- See tool progress as text completion result
-- tools groq
-- tools anthropic
+- ✅ See tool progress as text completion result
+- ✅ tools groq
+- Tools anthropic
 - Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
-- Can't scroll up while generating completions
+- ✅ Can't scroll up while generating completions
 - When going to another agent, I loose my input text
 
 # Hide implementation for foundation model creation.
