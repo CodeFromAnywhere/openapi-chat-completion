@@ -255,6 +255,9 @@
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
 
+                let toolcallState = {};
+                let toolcallIds = {};
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
@@ -271,17 +274,96 @@
                             try {
                                 const data = JSON.parse(line.slice(5));
                                 console.log(line)
-                                if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+                                if (data.choices?.[0]?.delta?.content) {
                                     response.value += data.choices[0].delta.content;
+
                                     response.scrollTop = response.scrollHeight;
+
                                     checkForCodeBlocks();
                                 }
+
+
+                                const tool_calls = data.choices[0].delta.tool_calls;
+                                const tools = data.choices?.[0]?.delta?.tools;
+
+                                let n = 0;
+                                const loadingIndicators = ['🟥', '🟧', '🟨'];
+                                const doneEmoji = '🟩'
+
+                                if (tool_calls) {
+
+                                    tool_calls.map(call => {
+
+                                        if (call.function?.name) {
+                                            response.value += `\n\n⚡️ Using ${call.function.name}\n`;
+
+                                            toolcallIds[call.id] = call.index;
+
+                                            toolcallState[call.index] = call.function.name + "(";
+
+
+                                            intervalId = setInterval(() => {
+
+                                                n++;
+
+                                                if (n > 15) {
+                                                    console.log('self closing interval after 15x')
+                                                    clearInterval(intervalId)
+                                                    return;
+                                                }
+
+                                                const emoji = n < 4 ? loadingIndicators[0] : n < 8 ? loadingIndicators[1] : loadingIndicators[2]
+
+
+
+                                                response.value += emoji;
+
+                                            }, 500);
+                                        }
+
+                                        if (call.function?.arguments) {
+                                            toolcallState[call.index] += call.function.arguments;
+                                        }
+
+
+                                    });
+
+                                    console.log('tool_calls', tool_calls)
+                                } else if (tools) {
+
+                                    if (intervalId) {
+                                        clearInterval(intervalId)
+                                    }
+
+                                    tools.map(tool => {
+                                        const index = toolcallIds[tool.tool_call_id]
+                                        toolcallState[index] += ') => ' + tool.content
+                                    })
+
+                                    console.log('tool response length', JSON.stringify(tools).length);
+
+                                    response.value += `${doneEmoji} (response size: ${JSON.stringify(tools).length} characters)\n\n\n`;
+
+
+
+                                    console.log('tools', tools);
+
+                                }
+
+
+
                             } catch (e) {
                                 console.log('Error parsing JSON:', e);
                             }
                         }
                     }
                 }
+
+
+                if (Object.keys(toolcallState).length > 0) {
+                    response.value += "\n\nTools used:\n\n" + Object.values(toolcallState).join("\n\n")
+                }
+
 
                 document.getElementById('submitIcon').className = "fas fa-paper-plane mr-2"
                 isLoading = false;
