@@ -299,6 +299,7 @@ const getStream = async (
 
 const defaultBasePath = Object.keys(chatCompletionSecrets)[0];
 
+/** Needed specifically for openai which doesn't allow many characters */
 const normalizeOpenapi = (openapi: OpenapiDocument) => {
   for (const path in openapi.paths) {
     const methods = ["get", "post", "put", "path", "delete"] as const;
