@@ -5,21 +5,12 @@
 - ✅ Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
 - ✅ Can't scroll up while generating completions
 - ✅ When going to another agent, I loose my input text
-- After the openapiUrl refactor, tool use is buggy.
+
+# Tool use stability
+
+- After the openapiUrl refactor, tool use seems buggy.
 - Long tool output is buggy, sometimes JSON parse error
 - Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
-
-# Internal: `openapi-chat-completion`
-
-🤔🔥 `openapi-chat-completion` is an internal tool behind login without state. `openapi-agent` can become one a profile registry on top of it, adding state, exposed at https://agent.actionschema.com/{slug} baseUrl.
-
-# Hide implementation for foundation model creation.
-
-OpenAPIs are now open and exposed to the user. This is extremely powerful, but it's possible to hide and create a basemodel too. All we need to do is create a kv store that maps a slug to the openapi (and partial profile), and then it's a matter of using https://chat.actionschema.com/{slug} as a basepath. From here you can chat with it, and https://chat.actionschema.com/{slug}/chat/completions and https://chat.actionschema.com/{slug}/openapi.json would be available too.
-
-This adds complexity, but also cleans up the interface a lot, and creates a lot of IP for the creator of the agent. Maybe even including the API key! Nevertheless we can still link to the openapi for the free version...
-
-Create a fully private agent-setup as a public config-file. User only sees https://boardapp.nl/chat/{bedrijf}
 
 # Tools with instant prompt and codeblock input or output
 
@@ -37,9 +28,7 @@ This further brings the ability to use code generation tools anywhere.
 
 <!--
 After I have this, create a tool that stream responds the first codeblock with keep-alive and stops at the end. This tool can be used from `generateHtmlMiddleware` and I never need to think about HTML anymore. The LOC of all my repos become much smaller!
--->
 
-<!--
 Insight: this is my core competency, as it will improve the API. I'm wasting too much time on frontend, I can test programatically!
 -->
 
@@ -55,14 +44,13 @@ For this, maybe we can also create a new property `redirectOperationId`. If the 
 
 ❗️ I really want to see a router agent... That would be my new starting point!
 
-# FIX BROKEN STUFF
+# Explain how to use
 
-- Fix auth in a way that it can store secrets again for me - choose between oauth2 or not - and have an endpoint that allows to retrieve the secret.
-- Edge deployment of env+fn+io: try https://docs.val.town/openapi#tag/vals/POST/v1/vals and later replace with cloudflare or aws.
+This page/functionality should still be hidden for now until I really know how to monetise this properly.
 
-# Authed cached static deployment
+https://chat.actionschema.com should be better documented.
 
-Content at {twitterhandle}.gptideas.com with twitter login so it also links to your twitter, auto slug-generation for filename. this would also allow overwriting a slug.
+Explainer page should focus on how to use it with the OpenAI SDK so you can use any tool there.
 
 # Then Big value unlocks:
 

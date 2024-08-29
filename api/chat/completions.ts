@@ -13,7 +13,7 @@ import {
   FullToolCallDelta,
 } from "../types.js";
 import { chatCompletionSecrets } from "./util.js";
-import { slugify } from "edge-util";
+import { OpenapiOperationObject, slugify } from "edge-util";
 
 const createDeltaString = (model: string, message: string) => {
   const delta: ChatCompletionChunk = {
@@ -145,7 +145,7 @@ const streamLlmResponse = async (
           } else if (delta?.content !== undefined) {
             accumulatedMessage += delta.content;
           } else {
-            console.dir(data, { depth: 99 });
+            console.dir({ message: "weird data", data }, { depth: 99 });
           }
         } catch (error) {
           console.error("Error parsing JSON:", error);
@@ -222,7 +222,7 @@ const getStream = async (
             };
           });
 
-        console.dir({ uniqueToolcalls }, { depth: 99 });
+        //  console.dir({ uniqueToolcalls }, { depth: 99 });
 
         // add assistant messages to final response
         const message: ChatCompletionInput["messages"][number] = {
@@ -256,7 +256,7 @@ const getStream = async (
           .filter((x) => !!x)
           .map((x) => x!);
 
-        console.dir({ toolMessages }, { depth: 99 });
+        //console.dir({ toolMessages }, { depth: 99 });
 
         const delta: ChatCompletionChunk = {
           id: "chatcmpl-SOMETHING",
@@ -299,6 +299,21 @@ const getStream = async (
 
 const defaultBasePath = Object.keys(chatCompletionSecrets)[0];
 
+const normalizeOpenapi = (openapi: OpenapiDocument) => {
+  for (const path in openapi.paths) {
+    const methods = ["get", "post", "put", "path", "delete"] as const;
+    methods.map((method) => {
+      if ((openapi as any).paths[path]![method] as OpenapiOperationObject) {
+        console.log("setting", method);
+
+        (openapi as any).paths[path]![method].operationId = slugify(
+          (openapi as any).paths[path]![method].operationId,
+        );
+      }
+    });
+  }
+  return openapi;
+};
 export const completions = async (request: Request) => {
   const openapiSecret = request.headers.get("X-OPENAPI-SECRET");
   const access_token = openapiSecret || undefined;
@@ -345,6 +360,9 @@ export const completions = async (request: Request) => {
   const operationIds: string[] | undefined = undefined;
 
   const targetOpenapi = openapiUrl ? await fetchOpenapi(openapiUrl) : undefined;
+  const normalizedOpenapi = targetOpenapi
+    ? normalizeOpenapi(targetOpenapi)
+    : undefined;
 
   // if (!targetOpenapi || !targetOpenapi.paths) {
   //   return new Response("OpenAPI not found", { status: 400 });
@@ -372,8 +390,8 @@ export const completions = async (request: Request) => {
   //   });
 
   const semanticOpenapi =
-    targetOpenapi && openapiUrl
-      ? getSemanticOpenapi(targetOpenapi, openapiUrl, operationIds)
+    normalizedOpenapi && openapiUrl
+      ? getSemanticOpenapi(normalizedOpenapi, openapiUrl, operationIds)
       : undefined;
 
   // if (!semanticOpenapi) {
@@ -394,7 +412,8 @@ export const completions = async (request: Request) => {
         return {
           type: "function",
           function: {
-            name: slugify(operationId),
+            //todo: fix it
+            name: operationId,
             description: fullDescription,
             parameters: input,
           },
@@ -405,7 +424,7 @@ export const completions = async (request: Request) => {
   console.log({
     openapiUrl,
     toolsAmount: tools?.length,
-    hasOpenapi: !!targetOpenapi,
+    hasOpenapi: !!normalizedOpenapi,
     hasSemanticOpenapi: !!semanticOpenapi,
   });
 
@@ -420,7 +439,7 @@ export const completions = async (request: Request) => {
     basePath,
     llmSecret,
     openapiUrl,
-    targetOpenapi,
+    targetOpenapi: normalizedOpenapi,
     tools,
   });
 
@@ -505,7 +524,7 @@ async function streamToJsonResponse(stream: ReadableStream<any>) {
         );
         const content = parsedChunk.choices[0]?.delta?.content;
 
-        console.log({ chunk, parsedChunk });
+        // console.log({ chunk, parsedChunk });
         // NB: Only content for now
         if (content !== undefined && content !== null) {
           result += content;

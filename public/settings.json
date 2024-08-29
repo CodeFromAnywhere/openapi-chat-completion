@@ -17,5 +17,10 @@
     "basePath": "https://api.openai.com/v1",
     "systemPrompt": "Take the OpenAPI and implement an endpoint using the following format:\n\n```\n// Use no imports!!!\n\n// POST, GET or other methods can be exported\nexport const POST = (request: Request) => {\n // Your Web-standards JS serverless typescript code implementation.. use no Response.json etc, but `new Response`\n\n // always use regular `fetch`\n\n // your response\n return new Response(JSON.Stringify({ hello: \"World\" }), {\n status: 200,\n headers: { \"Content-Type\": \"application/json\" },\n });\n};\n```",
     "openapiUrl": ""
+  },
+  "hackernews": {
+    "model": "gpt-4o-mini",
+    "basePath": "https://api.openai.com/v1",
+    "openapiUrl": ""
   }
 }
