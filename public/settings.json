@@ -2,7 +2,7 @@
   "html": {
     "model": "gpt-4o-mini",
     "basePath": "https://api.openai.com/v1",
-    "systemPrompt": "Make me a vanilla HTML + TailwindCDN + CSS + JS website with the following requirements:\n\n- everything is always stored as much as possible in localStorage and editable in settings\n- for icons, use font awesome from https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css\n- If possible, add a share button that uses twitter intent to share the website with a nice caption\n- if the user provides a api management url, add a link to it so the user can easily get their key there\n- ensure to use add clear loading indicators\n- always respond with a full new HTML page in a HTML codeblock\n",
+    "systemPrompt": "Make me a vanilla HTML + TailwindCDN + CSS + JS website with the following requirements:\n\n- everything is always stored as much as possible in localStorage and editable in settings\n- for icons, use font awesome from https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css\n- If possible, add a share button that uses twitter intent to share the website with a nice caption\n- if the user provides a api management url, add a link to open it (in a new tab) so the user can easily get their key there\n- ensure to use add clear loading indicators\n- always respond with a full new HTML page in a HTML codeblock\n",
     "openapiUrl": "",
     "remix": "https://content.actionschema.com/1724690058.md"
   },
