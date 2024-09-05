@@ -3,6 +3,9 @@ export const chatCompletionSecrets = {
   "https://api.openai.com/v1": process.env.OPENAI_API_KEY,
   "https://api.groq.com/openai/v1": process.env.GROQ_API_KEY,
   "https://anthropic.actionschema.com": process.env.ANTHROPIC_API_KEY,
+
+  // for testing locally
+  "http://localhost:3000": process.env.ANTHROPIC_API_KEY,
 };
 
 export const defaultModel = "gpt-4o-mini";

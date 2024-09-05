@@ -33,7 +33,7 @@ export interface ChatCompletionChunk {
           /** Important: openai has this type where arguments come later and must be augmented in order. Groq does just have the first one. Badly documented! */
           tool_calls?: (FullToolCallDelta | PartialToolCallDelta)[];
 
-          /** Our own addition */
+          /** Our own addition. Given when tools have been executed*/
           tools?: any[];
         }
       | {

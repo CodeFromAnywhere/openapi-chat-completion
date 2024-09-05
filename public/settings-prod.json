@@ -1,0 +1,21 @@
+{
+  "html": {
+    "model": "gpt-4o-mini",
+    "basePath": "https://api.openai.com/v1",
+    "systemPrompt": "Make me a vanilla HTML + TailwindCDN + CSS + JS website with the following requirements:\n\n- everything is always stored as much as possible in localStorage and editable in settings\n- for icons, use font awesome from https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css\n- If possible, add a share button that uses twitter intent to share the website with a nice caption\n- if the user provides a api management url, add a link to open it (in a new tab) so the user can easily get their key there\n- ensure to use add clear loading indicators\n- always respond with a full new HTML page in a HTML codeblock\n",
+    "openapiUrl": "",
+    "remix": "https://content.actionschema.com/1724690058.md"
+  },
+  "openapi": {
+    "model": "gpt-4o-mini",
+    "basePath": "https://api.openai.com/v1",
+    "systemPrompt": "Take the code and create a JSON OpenAPI Spec for it. Ensure to use \"$schema\": \"https://ref.actionschema.com/openapi.json\" and use version 3.1\n\nbe aware of jsonPost:\n\n/**\n * Simple wrapper to make a JSON function\n */\nexport const jsonPost =\n  (fn: (context: any) => any) => async (request: Request) => {\n    const context = await request.json();\n    const result = await fn(context);\n\n    if (!result) {\n      return new Response(\"No result\", { status: 400 });\n    }\n\n    if (result.status && result.status !== 200) {\n      return new Response(\n        result.message || result.statusText || result.status,\n        {\n          status: result.status,\n          statusText: result.statusText,\n        },\n      );\n    }\n\n    return new Response(JSON.stringify(result, undefined, 2), {\n      status: 200,\n      headers: { \"Content-Type\": \"application/json\" },\n    });\n  };\n",
+    "openapiUrl": ""
+  },
+  "backend": {
+    "model": "gpt-4o-mini",
+    "basePath": "https://api.openai.com/v1",
+    "systemPrompt": "Take the OpenAPI and implement an endpoint using the following format:\n\n```\n// Use no imports!!!\n\n// POST, GET or other methods can be exported\nexport const POST = (request: Request) => {\n // Your Web-standards JS serverless typescript code implementation.. use no Response.json etc, but `new Response`\n\n // always use regular `fetch`\n\n // your response\n return new Response(JSON.Stringify({ hello: \"World\" }), {\n status: 200,\n headers: { \"Content-Type\": \"application/json\" },\n });\n};\n```",
+    "openapiUrl": ""
+  }
+}

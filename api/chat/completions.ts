@@ -1,3 +1,5 @@
+//Test tool use through openapi-chat-completion for anthropic.
+
 import {
   createClient,
   fetchOpenapi,
@@ -53,7 +55,7 @@ const streamLlmResponse = async (
   const { messages, basePath, tools, llmSecret } = context;
 
   if (!llmSecret) {
-    const error = "OpenAI API key not configured";
+    const error = "API key not configured";
     console.error(error);
     controller.enqueue(
       new TextEncoder().encode(createDeltaString(context.body.model, error)),
@@ -209,12 +211,13 @@ const getStream = async (
         const uniqueToolcalls = (toolCalls as FullToolCallDelta[])
           .filter((x) => x.type === "function")
           .map((item) => {
-            // This is needed for openai!
-
+            // This is needed for openai and anthropic!
             const argumentConcat = (toolCalls as FullToolCallDelta[])
               .filter((x) => x.index === item.index)
               .map((x) => x.function.arguments)
               .join("");
+
+            console.log({ argumentConcat });
 
             return {
               ...item,
@@ -222,7 +225,7 @@ const getStream = async (
             };
           });
 
-        //  console.dir({ uniqueToolcalls }, { depth: 99 });
+        console.dir({ uniqueToolcalls }, { depth: 99 });
 
         // add assistant messages to final response
         const message: ChatCompletionInput["messages"][number] = {
@@ -256,7 +259,7 @@ const getStream = async (
           .filter((x) => !!x)
           .map((x) => x!);
 
-        //console.dir({ toolMessages }, { depth: 99 });
+        console.dir({ toolMessages }, { depth: 99 });
 
         const delta: ChatCompletionChunk = {
           id: "chatcmpl-SOMETHING",
