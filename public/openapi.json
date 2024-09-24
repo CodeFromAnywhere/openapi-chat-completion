@@ -11,7 +11,8 @@
           "description": "URI encoded URL leading to an OpenAPI spec"
         }
       }
-    }
+    },
+    { "url": "https://chat.actionschema.com" }
   ],
   "info": {
     "title": "OpenAPI Chat Completion API",
