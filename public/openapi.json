@@ -2,7 +2,17 @@
   "$schema": "https://ref.actionschema.com/openapi.json",
   "openapi": "3.1.0",
   "x-actionschema": "0.0.1",
-  "servers": [{ "url": "" }],
+  "servers": [
+    {
+      "url": "https://chat.actionschema.com/{URLENCODED_OPENAPI_URL}",
+      "variables": {
+        "URIENCODED_OPENAPI_URL": {
+          "example": "https%3A%2F%2Fsearch.actionschema.com%2Fopenapi.json",
+          "description": "URI encoded URL leading to an OpenAPI spec"
+        }
+      }
+    }
+  ],
   "info": {
     "title": "OpenAPI Chat Completion API",
     "version": "1.0.0"

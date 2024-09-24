@@ -1,5 +1,3 @@
-//Test tool use through openapi-chat-completion for anthropic.
-
 import {
   createClient,
   fetchOpenapi,

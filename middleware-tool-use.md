@@ -10,7 +10,7 @@
 
 - After the `openapiUrl` refactor, tool use seems buggy.
 - Long tool output is buggy, sometimes JSON parse error.
-- 🟠 Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
+- ✅ Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
 - Allow for tools that stream. Make this in conjunction with the middleware.
 
 Lets try to finish anthropic tool-use first, or make my own codeblock tool use. Then use middleware Claude + FetchURL to dev in english much easier.
