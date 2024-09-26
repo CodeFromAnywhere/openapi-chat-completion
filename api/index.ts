@@ -16,7 +16,8 @@ export const OPTIONS = async (request: Request) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Authorization, X-OPENAPI-SECRET, X-BASEPATH",
   };
   // Handle OPTIONS request (preflight)
   return new Response(null, { headers });
