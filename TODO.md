@@ -6,14 +6,39 @@
 - ✅ Can't scroll up while generating completions
 - ✅ When going to another agent, I loose my input text
 
-# Tool use stability
+# Stabilize + Cache chat.actionschema.com
 
-- After the `openapiUrl` refactor, tool use seems buggy.
-- Long tool output is buggy, sometimes JSON parse error.
-- ✅ Tools anthropic don't work atm, which is much needed for creating Anthropic agents.
-- Allow for tools that stream. Make this in conjunction with the middleware.
+Fix problem with weird anthropic generations.
 
-Lets try to finish anthropic tool-use first, or make my own codeblock tool use. Then use middleware Claude + FetchURL to dev in english much easier.
+Ensure to add some tests on every layer.
+
+# Stability and ratelimit-reset headers
+
+When there is too much usage, ensure to use `x-ratelimit-*` headers indicating when we can use stuff again. This makes it easier to build reliable workflows.
+
+# Caching
+
+For many use-cases it's interesting to have a highly performant cache that immediately responds given a tool-free prompt being the same as previously. This is easy to implement and I've done it before. Redis seems great for this.
+
+# Streaming tools
+
+Allow for tools that stream.
+
+As an example, an agent that uses another agent would be very cool.
+
+# jsonGpt
+
+Lets make it good and easy to debug.
+
+# Debugging
+
+What I have now is very hard to debug.
+
+How can I make it easier to debug these agents that use tools in for example irfc-cloud?
+
+# callback tools
+
+Tools that take a while to generate must be able to use callback functionality to then re-activate the LLM.
 
 # Tools with instant prompt and codeblock input or output
 
@@ -54,10 +79,3 @@ This page/functionality should still be hidden for now until I really know how t
 https://chat.actionschema.com should be better documented.
 
 Explainer page should focus on how to use it with the OpenAI SDK so you can use any tool there.
-
-# Then Big value unlocks:
-
-- list public github repos of any owner
-- dynamic system prompt for github repos and github owners
-- bulk search github repos -> gpt question on context
-- scalable screenshots & HTML to MD

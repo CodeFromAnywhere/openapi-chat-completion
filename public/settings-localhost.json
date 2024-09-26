@@ -1,0 +1,8 @@
+{
+  "test-localhost": {
+    "model": "claude-3-5-sonnet-20240620",
+    "basePath": "http://localhost:3000",
+    "systemPrompt": "Please fetch the URL the user provides and tell me a summary of what you see",
+    "openapiUrl": "https://openapi-code-agent.vercel.app/openapi.json"
+  }
+}
