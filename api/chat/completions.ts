@@ -137,7 +137,7 @@ const streamLlmResponse = async (
 
           // directly pass through the encoding on per-line basis, everything except [DONE]
           controller.enqueue(new TextEncoder().encode("\n\n" + line));
-
+          console.log("delta", delta, data);
           if (delta?.tool_calls) {
             toolCalls = toolCalls.concat(delta.tool_calls);
           } else if (delta?.content !== undefined) {
@@ -177,7 +177,7 @@ const getStream = async (
       let loop = 0;
 
       while (true) {
-        // console.log(`messages before entry`, messages);
+        console.log(`messages before entry`, messages);
 
         loop++;
         // listen and pass through all messages
@@ -186,7 +186,7 @@ const getStream = async (
           messages,
         });
 
-        // console.log({ loop, result });
+        console.log({ loop, result });
 
         if (!result) {
           console.log("going out");
@@ -196,6 +196,7 @@ const getStream = async (
         const { accumulatedMessage, toolCalls } = result;
 
         if (!targetOpenapi || !openapiUrl || toolCalls.length === 0) {
+          console.log("no toolcalls");
           // If there are no tool calls, we can safely break out, everything has been said.
           break;
         }
@@ -397,7 +398,6 @@ export const completions = async (request: Request) => {
       : undefined;
 
   // if (!semanticOpenapi) {
-  //   console.log("SEMANTIC NOT FOUND", { openapiUrl });
   //   return new Response("SemanticOpenAPI not found", { status: 400 });
   // }
 
