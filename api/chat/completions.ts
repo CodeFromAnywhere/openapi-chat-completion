@@ -456,8 +456,9 @@ export const completions = async (request: Request) => {
     return new Response(readableStream.stream, {
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
+        "Transfer-Encoding": "chunked",
       },
     });
   }

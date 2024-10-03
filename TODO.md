@@ -6,6 +6,26 @@
 - ✅ Can't scroll up while generating completions
 - ✅ When going to another agent, I loose my input text
 
+# Chat system prompt from urls
+
+Example: `Make the complete openapi.json specification file that specifies what is implemented in this code: https://uithub.com/BrandwatchLtd/bcr-api/tree/master/src/bcr_api`
+
+This should expand into the systemprompt being appended with the contents of the url.
+
+If the result has a non-terminated codeblock, it should be able to continue from after an exact character, and ultimately concatenate all json chunks generated, responding with one complete JSON.
+
+The result should be cached by default. Since we need context, a simple rule to expand urls as context is enough, we don't need to do this for all tools per se, but that could be done later too.
+
+Cached results should not require authentication and can be made into an URL by looking at the hash.
+
+Having this as a standalone cacheable api is super powerful, especially if it's url-based.
+
+# Made Tool Template
+
+Idk what i wanted to do with tools exactly. I think it's probably not needed to create a backend for tools as everyone can make their own front+backend with my lib.
+
+Also let's consider to make chat.actionschema.com open source? Or at least open-api? At least let's take a look what is needed to make this a success. For now, it's wasted potential.
+
 # Stabilize + Cache chat.actionschema.com
 
 Fix problem with weird anthropic generations.
