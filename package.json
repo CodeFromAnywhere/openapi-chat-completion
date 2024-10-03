@@ -13,6 +13,6 @@
     "edge-util": "^0.0.27",
     "marked": "^14.1.2",
     "marked-util": "^0.0.5",
-    "openapi-util-edge": "^0.0.163"
+    "openapi-util-edge": "^0.0.164"
   }
 }

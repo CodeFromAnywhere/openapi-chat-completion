@@ -6,7 +6,7 @@ export const chatCompletionSecrets = {
   "https://anthropic.actionschema.com": process.env.ANTHROPIC_API_KEY,
 
   // for testing locally
-  "http://localhost:3000": process.env.ANTHROPIC_API_KEY,
+  // "http://localhost:3000": process.env.ANTHROPIC_API_KEY,
 };
 
 export const defaultModel = "gpt-4o-mini";

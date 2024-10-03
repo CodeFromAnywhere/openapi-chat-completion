@@ -2,6 +2,7 @@ import {
   createClient,
   getSemanticOpenapi,
   OpenapiDocument,
+  fetchOpenapi,
 } from "openapi-util-edge";
 
 import {
@@ -10,7 +11,7 @@ import {
   ChatCompletionInput,
   FullToolCallDelta,
 } from "../types.js";
-import { chatCompletionSecrets, fetchOpenapi } from "./util.js";
+import { chatCompletionSecrets } from "./util.js";
 import { OpenapiOperationObject, slugify, tryParseJson } from "edge-util";
 
 const createDeltaString = (model: string, message: string) => {
@@ -363,6 +364,7 @@ export const completions = async (request: Request) => {
   const targetOpenapi = (
     openapiUrl ? await fetchOpenapi(openapiUrl) : undefined
   ) as OpenapiDocument | undefined;
+
   const normalizedOpenapi = targetOpenapi
     ? normalizeOpenapi(targetOpenapi)
     : undefined;
