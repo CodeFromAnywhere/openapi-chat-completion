@@ -1,10 +1,8 @@
 import {
   createClient,
-  fetchOpenapi,
   getSemanticOpenapi,
   OpenapiDocument,
-  tryParseJson,
-} from "openapi-util";
+} from "openapi-util-edge";
 
 import {
   ChatCompletionChunk,
@@ -12,8 +10,8 @@ import {
   ChatCompletionInput,
   FullToolCallDelta,
 } from "../types.js";
-import { chatCompletionSecrets } from "./util.js";
-import { OpenapiOperationObject, slugify } from "edge-util";
+import { chatCompletionSecrets, fetchOpenapi } from "./util.js";
+import { OpenapiOperationObject, slugify, tryParseJson } from "edge-util";
 
 const createDeltaString = (model: string, message: string) => {
   const delta: ChatCompletionChunk = {
@@ -361,7 +359,9 @@ export const completions = async (request: Request) => {
   // // TODO: Get this from thing
   const operationIds: string[] | undefined = undefined;
 
-  const targetOpenapi = openapiUrl ? await fetchOpenapi(openapiUrl) : undefined;
+  const targetOpenapi = (
+    openapiUrl ? await fetchOpenapi(openapiUrl) : undefined
+  ) as OpenapiDocument | undefined;
   const normalizedOpenapi = targetOpenapi
     ? normalizeOpenapi(targetOpenapi)
     : undefined;

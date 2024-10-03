@@ -1,3 +1,4 @@
+import { fetchWithTimeout, OpenapiDocument } from "edge-util";
 export const chatCompletionSecrets = {
   // first one is default basepath
   "https://api.openai.com/v1": process.env.OPENAI_API_KEY,
@@ -43,3 +44,44 @@ export async function pipeResponseToController<T>(
 
   return cumulativeValue;
 }
+
+const openapis: { [url: string]: OpenapiDocument } = {};
+
+/** Fetches openapi but with cache */
+export const fetchOpenapi = async (openapiUrl: string | undefined) => {
+  if (!openapiUrl) {
+    return;
+  }
+
+  if (openapis[openapiUrl]) {
+    // NB: cached in memory
+    return openapis[openapiUrl];
+  }
+
+  const isYaml = openapiUrl.endsWith(".yaml");
+
+  const { json, status, statusText, text } =
+    await fetchWithTimeout<OpenapiDocument>(
+      openapiUrl,
+      {
+        headers: isYaml
+          ? undefined
+          : {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+      },
+      30000,
+    );
+
+  if (json) {
+    // NB: set cache
+    openapis[openapiUrl] = json;
+  }
+
+  if (!json) {
+    console.log({ status, statusText, text });
+  }
+
+  return json || undefined;
+};

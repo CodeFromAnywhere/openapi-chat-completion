@@ -1,5 +1,4 @@
 import { jsonGetter } from "edge-util";
-import { fetchOpenapi } from "openapi-util";
 import { calculateCost } from "./chat/calculate-cost.js";
 import { raw } from "./chat/raw.js";
 import {
@@ -7,9 +6,9 @@ import {
   getSimpleResponsePostRequest,
 } from "./chat/simple.js";
 import { completions } from "./chat/completions.js";
+import { fetchOpenapi } from "./chat/util.js";
 
-// can't be done due to openapi-util!!! let's remove fs, prettier, etc from from-anywhere
-//export const config = { runtime: "edge" };
+export const config = { runtime: "edge", regions: ["iad1"] };
 
 export const OPTIONS = async (request: Request) => {
   // Set CORS headers
