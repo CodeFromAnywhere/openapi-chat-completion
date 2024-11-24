@@ -93,3 +93,11 @@ Explore:
 ✅ An ability to remove profiles easily will be great. For this, the profile selector needs to be added on settings to switch profile just like in index. A 'delete profile' button next to the selector shall delete the key from chatProfiles, and set currentProfile to the next option, and refresh the page.
 
 ✅ When chatProfiles is not set yet, load in profiles from a hardcoded URL and select the first one. That url is to be given.
+
+# Chat stability (26 august, 2024)
+
+- ✅ See tool progress as text completion result
+- ✅ tools groq
+- ✅ Fix tooluse operationId limitation OpenAI (e.g. `/` in github or `.` in ga4) -> slugify
+- ✅ Can't scroll up while generating completions
+- ✅ When going to another agent, I loose my input text

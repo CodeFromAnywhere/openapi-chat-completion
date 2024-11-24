@@ -6,7 +6,8 @@
     {
       "url": "https://chat.actionschema.com/{URLENCODED_OPENAPI_URL}",
       "variables": {
-        "URIENCODED_OPENAPI_URL": {
+        "URLENCODED_OPENAPI_URL": {
+          "default": "",
           "example": "https%3A%2F%2Fsearch.actionschema.com%2Fopenapi.json",
           "description": "URI encoded URL leading to an OpenAPI spec"
         }

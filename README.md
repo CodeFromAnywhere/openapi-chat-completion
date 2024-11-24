@@ -2,7 +2,7 @@
 
 Turns every OpenAPI into a `/chat/completions` endpoint, that in itself is exposed as OpenAPI as well.
 
-This is the successor of [Agent-Openapi](https://github.com/CodeFromAnywhere/agent-openapi). The biggest difference is it's fully stateless!!
+This is the successor of [Agent-Openapi](https://github.com/CodeFromAnywhere/tool-agent). The biggest difference is it's fully stateless!
 
 ## Getting started
 
